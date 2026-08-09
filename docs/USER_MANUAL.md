@@ -1,176 +1,164 @@
 # DocForge — User Manual
 
-**DocForge** is a desktop document-automation application for Windows. It lets you turn a
-Word (`.docx`) document into a reusable **template** with fillable fields, then generate
-completed documents on demand — as Word (`.docx`) or PDF — without ever sending your data
-to the cloud. Everything runs locally on your machine.
+**DocForge** is a 100% native desktop document-automation application for Windows. It lets you
+turn a Word (`.docx`) document into a reusable **template** with fillable fields, then generate
+completed documents on demand — as Word (`.docx`) or PDF — without ever sending your data to the
+cloud. Everything runs locally on your computer.
 
-> **Privacy note:** DocForge is fully offline. Documents, templates, and field values are
-> stored only on your computer. No internet connection or account is required.
+> **Privacy & Security Note:** DocForge is fully offline. Documents, templates, and field values are
+> encrypted at rest using Windows DPAPI and stored only on your computer. No internet connection or
+> cloud account is required.
 
-### DocForge in one minute
-Imagine you send the same kind of letter every week — an offer letter, a contract, an
-invoice — but the names and dates change each time. Instead of retyping the document, you:
-1. **Make a template once** from your Word file (mark the parts that change as "fields").
-2. **Click the template** and type in just those changing parts.
-3. **Export** a finished, formatted Word or PDF document in seconds.
+---
 
-That is DocForge. You do it all on your own computer; nothing leaves your machine.
+### DocForge in One Minute
 
-### Everyday workflow at a glance
-- **Create** a template from any `.docx` file → **Use** it whenever you need the document →
-  **Export** a filled Word or PDF. Repeat forever; create the template only once.
+Imagine you send the same kind of letter every week — an offer letter, a contract, an invoice — but
+the names, dates, and amounts change each time. Instead of retyping the document:
+
+1. **Make a template once** from your Word file (select changing text and configure fillable fields).
+2. **Click the template** and type or select just those changing values.
+3. **Export** a finished, formatted Word or PDF document in seconds with toast confirmation.
+
+That is DocForge. You do it all on your own computer; nothing ever leaves your machine.
+
+---
+
+### Everyday Workflow at a Glance
+
+- **Create** a template from any `.docx` file → **Search & Select** it whenever needed →
+  **Fill** values in a compact layout → **Export** a filled Word or PDF. Repeat forever; create the
+  template only once.
 
 ---
 
 ## 1. Getting Started
 
 ### System Requirements
-- Windows 10 or later (64-bit)
-- About 300 MB of free disk space for the installed app
+- Windows 10 or Windows 11 (64-bit)
+- Microsoft WebView2 Runtime (included in Windows 10/11)
+- About 300 MB of free disk space
 - A `.docx` (Word) file to use as your first template
 
 ### Installation
-1. Download the installer from your IT distributor or the release package:
-   - `DocForge.msi` (recommended — install for all users or current user)
-   - `DocForge.exe` (NSIS installer — single-user, portable-style install)
+1. Download the native installer from your IT distributor or release package:
+   - `DocForge_1.0.0_x64_en-US.msi` (recommended — Windows Installer for enterprise/user install)
+   - `DocForge_1.0.0_x64-setup.exe` (NSIS installer — single-user desktop setup)
    - `DocForge.msix` (Microsoft Store / enterprise sideload package)
 2. Run the installer and follow the prompts.
-3. Launch **DocForge** from the Start Menu.
+3. Launch **DocForge** directly from your Start Menu.
 
-> If Windows SmartScreen appears, choose **More info → Run anyway** (the binary is
-> self-signed in development builds; enterprise deployments should use the MSIX with your
-> organization's code-signing certificate).
+> **SmartScreen Note:** If Windows SmartScreen appears during initial setup, select **More info →
+> Run anyway** (development builds are self-signed; enterprise deployments use your organization's
+> code-signing certificate).
 
-### The Three Screens
-DocForge has three main views, switchable from the top navigation bar:
+### Navigation & Screens
+
+DocForge features four primary views accessible from the top navigation bar:
 
 | View | Purpose |
 |------|---------|
-| **Templates** | Browse, open, and delete your saved templates |
-| **New Template** | Turn a Word document into a reusable template |
-| **Fill** | Enter field values and export a finished document |
+| **Templates** | Search, browse, open, and manage your saved template library |
+| **New Template** | Upload a Word document and visually map fillable fields |
+| **Fill** | Enter field values using type-specific controls and export documents |
+| **Admin** | Manage organization seats, offline license files (`.dflic`), and audit logs |
+| **Shield Icon** | Configure privacy consent and anonymous diagnostic preferences |
 
 ---
 
 ## 2. Creating a Template
 
-A *template* is a Word document with one or more **fillable fields**. Each field marks a
-spot of text that gets replaced with a value when you generate a document.
+A *template* is a Word document with one or more **fillable fields**. Each field marks a spot of text
+that gets replaced with a value when you generate a document.
 
 1. Click **New Template** (or **Create First Template** on an empty library).
-2. On the **Upload** step, click the dashed box and pick a `.docx` file.
-   - DocForge reads the document and shows a live preview.
-3. The **Create Template** step opens:
-   - The template name is auto-filled from the file name (you can edit it).
-   - **Select text in the preview** with your mouse, then a prompt asks for a **field label**
-     (e.g. "Employee Name"). DocForge converts it to a safe tag like `employee_name` and
-     highlights the text.
-   - Repeat for every spot you want to fill later (names, dates, addresses, clauses, etc.).
-   - To remove a field, hover its card in the right sidebar and click the **X**.
-4. Click **Save Template**. You return to the Templates list.
+2. On the **Upload** screen, select a `.docx` file from your computer.
+   - DocForge validates the document's structure and renders an interactive preview.
+3. The **Create Template** workspace opens:
+   - Edit the template name in the header if desired.
+   - **Select text in the preview** with your mouse cursor.
+   - A custom **Field Modal** appears automatically:
+     - **Field Label:** Enter a descriptive title (e.g., *"Candidate Name"*). DocForge previews the resulting placeholder tag (`{{candidate_name}}`).
+     - **Field Type:** Choose between **Text**, **Date**, **Dropdown** (with custom options), **Checkbox**, or **Signature**.
+     - **Required:** Check whether this field must be filled prior to export.
+     - Click **Add Field**.
+   - The selected text is highlighted in amber, and a card appears in the right sidebar.
+   - To remove a field, hover over its card in the sidebar and click the **X** button.
+4. Click **Save Template**. Your template is encrypted with Windows DPAPI and stored in your local library.
 
-**Worked example** — an offer letter:
-1. Start from `OfferLetter.docx` containing: *"Dear **Jane Doe**, your start date is
-   **January 5, 2026**."*
-2. Select `Jane Doe` → label it `Candidate Name`.
-3. Select `January 5, 2026` → label it `Start Date`.
-4. Save as "Offer Letter".
-5. Next time, open the template, type the new candidate's name and start date, and export.
-   The letter is produced in seconds with correct formatting.
+---
 
-**Tips**
-- Field labels become `{{tag}}` placeholders inside the document. Keep labels unique and
-  descriptive.
-- A template must have at least one field and a name before it can be saved.
-- The original Word formatting (headings, tables, styles) is preserved.
+### Worked Example — An Offer Letter
+
+1. Upload `OfferLetter.docx` containing: *"Dear **Jane Doe**, your start date is **January 5, 2026**."*
+2. Highlight `Jane Doe` → Label: `Candidate Name`, Type: `Text`, Required: `Yes`.
+3. Highlight `January 5, 2026` → Label: `Start Date`, Type: `Date`, Required: `Yes`.
+4. Click **Save Template** as *"Standard Offer Letter"*.
+5. Future use: Select *"Standard Offer Letter"*, pick the candidate's name and date from the date picker, and click **Export Word**.
 
 ---
 
 ## 3. Using a Template (Generating Documents)
 
-1. On the **Templates** screen, click a template card or its **Use Template** button.
-2. The **Fill** screen shows one input box per field, pre-labeled with the field name and
-   the original text it replaces.
-3. Enter the values you want.
-4. Choose an action:
+1. On the **Templates** screen, click any template card or its **Use Template** button.
+2. The **Fill** screen displays:
+   - **Compact Multi-Column Layout:** Templates with more than 4 fields automatically arrange into a 2-column grid.
+   - **Type-Specific Controls:** Date pickers for Date fields, dropdown menus for Dropdown fields, and toggles for Checkboxes.
+   - **Required Field Indicators:** Required fields are marked with a red asterisk (`*`).
+3. Enter or select your desired field values.
+4. Choose an action from the top right toolbar:
 
-| Action | What it does |
-|--------|--------------|
-| **Preview Document** | Fills the values into the document and shows a formatted preview (read-only). Switch back with **Edit Values**. |
-| **Export Word** | Downloads a filled `.docx` file named `<TemplateName>_filled.docx`. |
-| **Export PDF** | Converts the filled document to PDF and downloads it. |
+| Action | Description |
+|--------|-------------|
+| **Preview Document** | Fills the values and opens a read-only document preview. Click **Edit Values** to return. |
+| **Export Word** | Generates a byte-identical `.docx` file named `<TemplateName>_filled.docx` and displays a success toast. |
+| **Export PDF** | Converts the document to a PDF and downloads `<TemplateName>_filled.pdf`. |
 
-> **PDF export requires LibreOffice** installed and available on your system `PATH`.
-> If it is missing, DocForge shows a clear message and you can still export Word.
-> For fully air-gapped / offline environments, install LibreOffice once; no network call
-> is made during conversion.
-
----
-
-## 4. Managing Templates
-
-On the **Templates** screen:
-- **Browse** all saved templates as cards showing the name, field count, and creation date.
-- **Open** a template by clicking its card or **Use Template**.
-- **Delete** a template by hovering its card and clicking the trash icon, then confirming.
-  Deletion is permanent and removes the stored template and its filled-field definitions.
-
-Templates are stored in your local app data directory (SQLite + the original `.docx`
-files), so they persist across sessions and survive app restarts.
+> **PDF Export & Timeout Guard:** PDF export uses an installed LibreOffice engine with a 120-second timeout guard. If LibreOffice is not installed, DocForge displays a clear notification banner while Word export remains fully operational.
 
 ---
 
-## 5. Troubleshooting
+## 4. Managing Templates & Privacy
 
-| Problem | Cause / Fix |
-|---------|-------------|
-| "Failed to load document" on upload | The file is not a valid `.docx`, or it has no `word/document.xml`. Re-save it from Word as a standard `.docx`. |
-| Preview is blank or missing styles | The preview uses a simplified HTML conversion (mammoth). The exported `.docx` keeps full Word fidelity — preview is for review only. |
-| PDF export fails | LibreOffice is not installed or not on `PATH`. Install LibreOffice, or use **Export Word**. |
-| A field didn't get replaced | The selected source text must match the document exactly. Re-create the field by selecting the exact text in **New Template**. |
-| Changes not saved | Ensure the template has a name and at least one field before clicking **Save Template**. |
+### Searching & Deleting
+- **Search Bar:** Type into the search input at the top of the **Templates** screen to filter your library by name in real time.
+- **Deleting a Template:** Hover over a template card, click the trash icon (`Trash2`), and confirm inside the custom **Delete Confirmation Modal**.
 
-### Error Messages
-DocForge surfaces errors as red banners inside the app (e.g. "Failed to save template: …").
-These are local operation messages — nothing is transmitted externally.
+### Admin Console & Offline Licensing
+- Click **Admin** in the navigation header to view organization seats, export immutable audit logs (`generation_log`), or activate offline enterprise license files (`.dflic`).
+
+### Privacy Preferences
+- Click the **Shield** icon in the header to view or update anonymous diagnostic and crash reporting settings.
 
 ---
 
-## 6. Privacy & Data Residency
+## 5. Command-Line Interface (CLI Automation)
 
-- **Local-only:** All processing happens on your device. No telemetry is sent.
- - **Storage:** Templates and documents are saved on this computer (in your Windows user
-   profile), so they stay available the next time you open DocForge.
-- **On-Premises build:** An air-gapped `docforge-onprem` engine variant is available for
-  enterprise deployment with telemetry hard-disabled at compile time.
+For server scripting and automated batch processing, DocForge includes a native headless CLI executable (`docforge-cli.exe`):
 
----
+```cmd
+:: Display CLI version and engine metadata
+docforge-cli.exe version
 
-## 7. Command-Line (Advanced / Enterprise)
+:: List all templates stored in the local SQLite database (JSON output)
+docforge-cli.exe list
 
-For automation and server/on-prem use, DocForge ships headless CLI binaries:
-
-- `docforge-cli` — headless operations (version, generate, fill, list).
-- `docforge-onprem` — air-gapped engine build.
-
-Example:
-```
-docforge-cli version          # prints engine version
-docforge-cli list             # lists available templates (JSON)
+:: Fill a template headlessly and save to an output file
+docforge-cli.exe fill --template-id "tpl_12345" --set candidate_name="Jane Doe" --set start_date="2026-09-01" --out "C:\Output\OfferLetter_Jane.docx"
 ```
 
-The desktop app talks to the same Rust core (`docforge-core`) that powers these binaries,
-so behavior is identical whether you click or script.
+The CLI connects directly to the same local Rust engine (`docforge-core`) and SQLite database used by the desktop app.
 
 ---
 
-## 8. Getting Help
+## 6. Troubleshooting & FAQ
 
-- Check the **Troubleshooting** section above first.
-- For enterprise deployments, contact your DocForge administrator or IT distributor.
-- Report reproducible bugs with: the template used, the steps taken, and the exact error
-  text shown in the red banner.
+| Question / Issue | Resolution |
+|------------------|------------|
+| **"LibreOffice not found" on PDF export** | Install [LibreOffice](https://www.libreoffice.org/) on your machine. Word export (`.docx`) works without LibreOffice. |
+| **Is my document sent to any server?** | **No.** DocForge is 100% offline. All document generation happens on your local CPU. |
+| **Where are my templates stored?** | Stored locally in `%APPDATA%\docforge\` in an encrypted SQLite database and filesystem structure. |
+| **"PDF conversion timed out"** | Occurs if LibreOffice hangs. DocForge automatically terminates the process after 120 seconds to protect system resources. |
 
 ---
 
