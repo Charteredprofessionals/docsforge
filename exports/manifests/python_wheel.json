@@ -1,0 +1,14 @@
+{
+  "project": "DocForge",
+  "version": "0.1.0",
+  "artifact": "DocForge-0.1.0-py3-none-any.whl",
+  "format": "python_wheel",
+  "platform": "python",
+  "architecture": "any",
+  "builder": "wheel/pip",
+  "build_status": "unavailable",
+  "validation_status": "skipped",
+  "reason": "neither 'wheel' nor 'build' package installed",
+  "sha256": null,
+  "output_path": null
+}

@@ -1,0 +1,14 @@
+{
+  "project": "DocForge",
+  "version": "0.1.0",
+  "artifact": "DocForge.msi",
+  "format": "windows_msi",
+  "platform": "windows",
+  "architecture": "x64",
+  "builder": "WiX",
+  "build_status": "unavailable",
+  "validation_status": "skipped",
+  "reason": "MSI build: UNAVAILABLE — WiX Toolset missing from PATH",
+  "sha256": null,
+  "output_path": null
+}

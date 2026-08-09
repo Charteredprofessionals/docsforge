@@ -1,0 +1,136 @@
+{
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "requirement": "REQ-001",
+      "description": "docx_engine is the only code path that tags or fills documents; frontend contains no docxtemplater dependency and only renders previews",
+      "verification": "unit_test + code_review"
+    },
+    {
+      "id": "AC-002",
+      "requirement": "REQ-002",
+      "description": "A fixture where selected text spans 3 runs tags correctly with formatting from the first run preserved",
+      "verification": "fixture_test"
+    },
+    {
+      "id": "AC-003",
+      "requirement": "REQ-003",
+      "description": "Filling a template with an unclosed tag returns a structured error naming the tag, never a corrupted docx",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-004",
+      "requirement": "REQ-004",
+      "description": "templates table stores storage_path only; a saved template round-trips through filesystem storage",
+      "verification": "unit_test + integration_test"
+    },
+    {
+      "id": "AC-005",
+      "requirement": "REQ-005",
+      "description": "A 15MB template transfers across the Tauri bridge via binary payload without Base64 in the hot path",
+      "verification": "integration_test"
+    },
+    {
+      "id": "AC-006",
+      "requirement": "REQ-006",
+      "description": "PDF export succeeds on a clean Windows VM with no LibreOffice installed",
+      "verification": "e2e_test"
+    },
+    {
+      "id": "AC-007",
+      "requirement": "REQ-007",
+      "description": "All four export paths (docx, pdf, html preview, dfpkg bundle) produce valid output artifacts",
+      "verification": "integration_test"
+    },
+    {
+      "id": "AC-008",
+      "requirement": "REQ-008",
+      "description": "Creator can upload, define all five field types, preview highlights, and save a template",
+      "verification": "e2e_test"
+    },
+    {
+      "id": "AC-009",
+      "requirement": "REQ-009",
+      "description": "Filler can fill all field types, preview, and export; invalid values raise per-field structured errors",
+      "verification": "e2e_test"
+    },
+    {
+      "id": "AC-010",
+      "requirement": "REQ-010",
+      "description": "A template can be versioned through all four states and rolled back to a prior version",
+      "verification": "unit_test + integration_test"
+    },
+    {
+      "id": "AC-011",
+      "requirement": "REQ-011",
+      "description": "Each RBAC role is enforced: viewer cannot edit; filler cannot publish; approver cannot bypass review",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-012",
+      "requirement": "REQ-012",
+      "description": "A draft template is not fillable by non-creators until approved and published",
+      "verification": "integration_test"
+    },
+    {
+      "id": "AC-013",
+      "requirement": "REQ-013",
+      "description": "Every generation writes an immutable audit entry; admin can export the audit log",
+      "verification": "unit_test + integration_test"
+    },
+    {
+      "id": "AC-014",
+      "requirement": "REQ-014",
+      "description": "Admin console surfaces users, seats, licenses, library, audit viewer, and aggregate usage reports",
+      "verification": "e2e_test"
+    },
+    {
+      "id": "AC-015",
+      "requirement": "REQ-015",
+      "description": "License activation works offline; Pro honors 2-device limit; enterprise license file activates without phone-home",
+      "verification": "integration_test"
+    },
+    {
+      "id": "AC-016",
+      "requirement": "REQ-016",
+      "description": "CLI generates a document from template + JSON data; REST bridge serves generation; webhook fires on success",
+      "verification": "integration_test"
+    },
+    {
+      "id": "AC-017",
+      "requirement": "REQ-017",
+      "description": "Strict CSP active; a crafted docx with embedded script cannot execute in the preview renderer",
+      "verification": "security_test"
+    },
+    {
+      "id": "AC-018",
+      "requirement": "REQ-018",
+      "description": "Non-docx files and malformed zips are rejected with clear errors; file picker paths validated against traversal",
+      "verification": "security_test"
+    },
+    {
+      "id": "AC-019",
+      "requirement": "REQ-019",
+      "description": "Stored template files encrypted on Windows; audit of telemetry payloads confirms no document content",
+      "verification": "security_test + code_review"
+    },
+    {
+      "id": "AC-020",
+      "requirement": "REQ-020",
+      "description": "Telemetry is opt-in via consent screen; enterprise build ships with telemetry disabled and no crash-report upload",
+      "verification": "e2e_test"
+    },
+    {
+      "id": "AC-021",
+      "requirement": "REQ-021",
+      "description": "SAML login works against a test IdP; on-prem build runs air-gapped; MSI deploys silently via policy file",
+      "verification": "integration_test"
+    },
+    {
+      "id": "AC-022",
+      "requirement": "REQ-022",
+      "description": "Auto-update installs a signed release and can roll back; SBOM attached to the release manifest",
+      "verification": "e2e_test + release_gate"
+    }
+  ]
+}

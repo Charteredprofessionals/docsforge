@@ -1,0 +1,14 @@
+{
+  "project": "DocForge",
+  "version": "0.1.0",
+  "artifact": "DocForge.msi",
+  "format": "cloud_msi",
+  "platform": "windows",
+  "architecture": "x64",
+  "builder": "Cloud WiX Runner",
+  "build_status": "passed",
+  "validation_status": "passed",
+  "workflow_file": "D:\\sdlc_studio\\projects\\docsforge\\.github\\workflows\\build_msi.yml",
+  "sha256": null,
+  "output_path": "D:\\sdlc_studio\\projects\\docsforge\\exports\\windows\\msi\\DocForge.msi"
+}

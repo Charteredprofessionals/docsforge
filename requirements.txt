@@ -1,0 +1,2 @@
+# DocForge Python SDLC Test Harness Dependencies
+pytest>=8.0.0

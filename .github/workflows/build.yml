@@ -1,0 +1,41 @@
+name: Build DocForge Project
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Native Windows Executables
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Rust Stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Dependencies
+        working-directory: ./projects/docsforge
+        run: npm ci
+
+      - name: Build Tauri Binary
+        working-directory: ./projects/docsforge
+        run: |
+          npm run build
+          npx tauri build
+
+      - name: Upload Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: DocForge-Binaries
+          path: projects/docsforge/src-tauri/target/release/

@@ -1,0 +1,13 @@
+{
+  "project": "DocForge",
+  "version": "0.1.0",
+  "artifact": "DocForge-0.1.0.tar.gz",
+  "format": "source_tarball",
+  "platform": "any",
+  "architecture": "universal",
+  "builder": "tarfile",
+  "build_status": "passed",
+  "validation_status": "passed",
+  "sha256": "e199bea1076de8d4eb59ca17711ef25a5e71c931f5e6af482dad1f472e948cf4",
+  "output_path": "D:\\sdlc_studio\\projects\\docsforge\\exports\\source\\DocForge-0.1.0.tar.gz"
+}

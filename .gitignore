@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+src-tauri/target/
+tsconfig.tsbuildinfo
+
+# Generated distribution archives and native installers
+exports/source/*.zip
+exports/source/*.tar.gz
+exports/*.tar.gz
+exports/*.zip
+exports/windows/
+*.exe
+*.msi
+*.msix
+
+# Caches & Environment
+.pytest_cache/
+__pycache__/
+*.pyc
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

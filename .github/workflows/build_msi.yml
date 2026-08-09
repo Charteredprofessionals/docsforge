@@ -1,0 +1,11 @@
+name: Build Windows MSI Installer
+on: [workflow_dispatch]
+jobs:
+  build-msi:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install WiX
+        run: choco install wix -y
+      - name: Build MSI
+        run: wix build -o exports/windows/DocForge.msi

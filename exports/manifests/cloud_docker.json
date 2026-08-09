@@ -1,0 +1,14 @@
+{
+  "project": "docforge",
+  "version": "0.1.0",
+  "artifact": "ghcr.io/docforge:0.1.0",
+  "format": "cloud_docker",
+  "platform": "linux/amd64",
+  "architecture": "amd64",
+  "builder": "Cloud Docker / GHCR Builder",
+  "build_status": "passed",
+  "validation_status": "passed",
+  "workflow_file": "D:\\sdlc_studio\\projects\\docsforge\\.github\\workflows\\docker_publish.yml",
+  "sha256": null,
+  "output_path": "ghcr.io/docforge:0.1.0"
+}

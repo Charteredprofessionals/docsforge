@@ -1,0 +1,13 @@
+__pycache__
+*.pyc
+.pytest_cache
+.git
+.lancedb
+.env
+*.db
+logs
+.checkpoints
+exports
+*.zip
+*.tar.gz
+mininotes.db

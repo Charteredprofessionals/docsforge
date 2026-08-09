@@ -1,0 +1,15 @@
+{
+  "corpus": "DocForge 50-Fixture DOCX Tag-Fidelity Test Corpus",
+  "version": "1.0.0",
+  "target_fidelity": "100%",
+  "categories": [
+    "simple_text_run",
+    "multi_run_cross_span",
+    "formatted_bold_italic_run",
+    "table_cell_text",
+    "header_footer_text",
+    "rtl_text",
+    "tracked_changes_text"
+  ],
+  "fixtures_count": 50
+}

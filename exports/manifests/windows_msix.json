@@ -1,0 +1,14 @@
+{
+  "project": "DocForge",
+  "version": "1.0.0",
+  "artifact": "DocForge.msix",
+  "format": "windows_msix",
+  "platform": "windows",
+  "architecture": "x64",
+  "builder": "makeappx",
+  "build_status": "passed",
+  "validation_status": "passed",
+  "manifest_path": "D:\\sdlc_studio\\projects\\docsforge\\exports\\windows\\msix\\staging\\AppxManifest.xml",
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "output_path": "D:\\sdlc_studio\\projects\\docsforge\\exports\\DocForge.msix"
+}

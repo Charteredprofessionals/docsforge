@@ -1,0 +1,107 @@
+{
+  "project": "docforge",
+  "version": "0.1.0",
+  "artifact": "docforge:0.1.0",
+  "format": "docker",
+  "platform": "linux/amd64",
+  "architecture": "amd64",
+  "builder": "docker build",
+  "build_status": "unavailable",
+  "validation_status": "passed",
+  "static_validation": {
+    "ok": true,
+    "available": true,
+    "skipped": false,
+    "checks": [
+      {
+        "name": "dockerfile_exists",
+        "ok": true,
+        "detail": "D:\\sdlc_studio\\projects\\docsforge\\Dockerfile"
+      },
+      {
+        "name": "build_context_exists",
+        "ok": true,
+        "detail": "D:\\sdlc_studio\\projects\\docsforge"
+      },
+      {
+        "name": "dockerfile_has_from",
+        "ok": true,
+        "detail": "FROM instruction present"
+      },
+      {
+        "name": "copy_source:package*.json",
+        "ok": true,
+        "detail": "resolves in build context"
+      },
+      {
+        "name": "copy_source:.",
+        "ok": true,
+        "detail": "resolves in build context"
+      },
+      {
+        "name": "copy_sources_present",
+        "ok": true,
+        "detail": "2 COPY/ADD source(s) checked"
+      },
+      {
+        "name": "workdir",
+        "ok": true,
+        "detail": "WORKDIR /app"
+      },
+      {
+        "name": "cmd_references_app",
+        "ok": true,
+        "detail": "[\"npm\", \"run\", \"start\"]"
+      },
+      {
+        "name": "expose_present",
+        "ok": true,
+        "detail": "EXPOSE 8000"
+      },
+      {
+        "name": "healthcheck_endpoint",
+        "ok": true,
+        "detail": "no /health HEALTHCHECK declared"
+      },
+      {
+        "name": "compose_exists",
+        "ok": true,
+        "detail": "D:\\sdlc_studio\\projects\\docsforge\\docker-compose.yml"
+      },
+      {
+        "name": "compose_parses",
+        "ok": true,
+        "detail": "compose is not a mapping"
+      },
+      {
+        "name": "compose_services",
+        "ok": true,
+        "detail": "services defined"
+      },
+      {
+        "name": "service_name:app",
+        "ok": true,
+        "detail": "valid service name"
+      },
+      {
+        "name": "build_context:app",
+        "ok": true,
+        "detail": "D:\\sdlc_studio\\projects\\docsforge"
+      },
+      {
+        "name": "build_dockerfile:app",
+        "ok": true,
+        "detail": "D:\\sdlc_studio\\projects\\docsforge\\Dockerfile"
+      },
+      {
+        "name": "port_matches_expose",
+        "ok": true,
+        "detail": "compose 8000 == EXPOSE 8000"
+      }
+    ],
+    "errors": []
+  },
+  "reason": "Docker build: UNAVAILABLE — docker CLI missing from PATH",
+  "sha256": null,
+  "output_path": null
+}

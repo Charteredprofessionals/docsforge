@@ -1,0 +1,22 @@
+{
+  "platforms": ["windows-x64", "macos-arm64", "linux-x64"],
+  "tech_constraints": [
+    "Rust core (docx_engine) must compile as a library without GUI dependencies",
+    "quick-xml for XML streaming; no regex-based document.xml mutation",
+    "SQLite via rusqlite (bundled); no network database",
+    "Frontend generation logic prohibited (docxtemplater removed)",
+    "Zero-knowledge licensing/telemetry: document contents never transmitted",
+    "Deterministic generation only: no LLM/AI in the document generation path",
+    "Strict CSP required in Tauri config",
+    "Offline-first: core features must function without internet",
+    "Binary IPC for payloads > 1MB"
+  ],
+  "distribution_targets": ["MSIX", "MSI", "EXE", "ZIP"],
+  "release_definition": {
+    "tag_fidelity": "100% on 50-fixture corpus",
+    "clean_vm_pdf": "true",
+    "signed_binaries": "true",
+    "sbom_per_release": "true",
+    "quality_gate": "passed"
+  }
+}

@@ -1,0 +1,312 @@
+{
+  "status": "passed",
+  "checks": {
+    "requirements_verified": {
+      "status": "passed",
+      "detail": "requirements.json and acceptance_criteria.json present and parseable",
+      "present": [
+        "requirements.json",
+        "acceptance_criteria.json"
+      ],
+      "missing": [],
+      "required": true
+    },
+    "architecture_approved": {
+      "status": "passed",
+      "detail": "architecture approved (.approved_architecture present)",
+      "marker": "D:\\sdlc_studio\\projects\\docsforge\\.approved_architecture",
+      "required": true
+    },
+    "dag_valid": {
+      "status": "passed",
+      "detail": "task DAG valid (30 task(s), no cycles)",
+      "errors": [],
+      "required": true
+    },
+    "implementation_tests_pass": {
+      "status": "passed",
+      "detail": "unit/implementation suite: 24 passed / 0 failed / 0 error(s) (pytest rc=0)",
+      "required": true
+    },
+    "integration_tests_pass": {
+      "status": "passed",
+      "detail": "integration suite (same pytest run): 24 passed / 0 failed / 0 error(s) (pytest rc=0)",
+      "required": true
+    },
+    "lint": {
+      "status": "skipped",
+      "detail": "flake8 not installed; non-blocking",
+      "required": false
+    },
+    "types": {
+      "status": "skipped",
+      "detail": "mypy not installed; non-blocking",
+      "required": false
+    },
+    "security_pass": {
+      "status": "passed",
+      "detail": "no blocking findings (counts: {'critical': 0, 'high': 0, 'medium': 0, 'low': 0})",
+      "counts": {
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "required": true
+    },
+    "openapi_valid": {
+      "status": "skipped",
+      "detail": "no FastAPI app and no routes detected; validation skipped",
+      "spec_exists": false,
+      "required": true
+    },
+    "documentation_valid": {
+      "status": "skipped",
+      "detail": "no OpenAPI surface; API.md not required",
+      "required": true
+    },
+    "docker_static_valid": {
+      "status": "passed",
+      "detail": "Dockerfile + compose statically valid (17 check(s))",
+      "required": true
+    },
+    "docker_execution": {
+      "status": "unavailable",
+      "detail": "docker not installed; static validation only",
+      "required": true
+    },
+    "distribution_valid": {
+      "status": "passed",
+      "detail": "docsforge-1.0.0.tar.gz: 17 member(s), no forbidden paths, src/ and requirements.txt present",
+      "tarball": "docsforge-1.0.0.tar.gz",
+      "members": 17,
+      "forbidden": [],
+      "forbidden_count": 0,
+      "missing": [],
+      "other_tarballs": [],
+      "required": true
+    },
+    "sbom_valid": {
+      "status": "passed",
+      "detail": "all 1 declared dependency(ies) present in SBOM (4 package(s))",
+      "sbom_packages": 4,
+      "missing": [],
+      "declared": [
+        "pytest"
+      ],
+      "required": true
+    },
+    "smoke_test_pass": {
+      "status": "skipped",
+      "detail": "src/main.py not found; no HTTP app to smoke test",
+      "required": true
+    },
+    "requested_exports_valid": {
+      "status": "skipped",
+      "detail": "no requested distribution targets in config.json",
+      "required": true
+    }
+  },
+  "results": {
+    "tests": {
+      "tool": "pytest",
+      "passed": 24,
+      "failed": 0,
+      "errors": 0,
+      "returncode": 0,
+      "ok": true,
+      "failures": [],
+      "stdout": "........................                                                 [100%]\n24 passed in 0.15s\n",
+      "stderr": ""
+    },
+    "lint": {
+      "tool": "flake8",
+      "ok": true,
+      "available": false,
+      "skipped": true,
+      "stdout": "",
+      "stderr": "flake8 not installed"
+    },
+    "types": {
+      "tool": "mypy",
+      "ok": true,
+      "available": false,
+      "skipped": true,
+      "stdout": "",
+      "stderr": "mypy not installed"
+    },
+    "security": {
+      "passed": true,
+      "blocking": false,
+      "counts": {
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "findings": []
+    },
+    "openapi_routes": {
+      "ok": true,
+      "available": false,
+      "skipped": true,
+      "missing": [],
+      "extra": [],
+      "mismatched": [],
+      "detail": "no FastAPI app and no routes detected; validation skipped"
+    },
+    "docker_static": {
+      "ok": true,
+      "available": true,
+      "skipped": false,
+      "checks": [
+        {
+          "name": "dockerfile_exists",
+          "ok": true,
+          "detail": "D:\\sdlc_studio\\projects\\docsforge\\Dockerfile"
+        },
+        {
+          "name": "build_context_exists",
+          "ok": true,
+          "detail": "D:\\sdlc_studio\\projects\\docsforge"
+        },
+        {
+          "name": "dockerfile_has_from",
+          "ok": true,
+          "detail": "FROM instruction present"
+        },
+        {
+          "name": "copy_source:package*.json",
+          "ok": true,
+          "detail": "resolves in build context"
+        },
+        {
+          "name": "copy_source:.",
+          "ok": true,
+          "detail": "resolves in build context"
+        },
+        {
+          "name": "copy_sources_present",
+          "ok": true,
+          "detail": "2 COPY/ADD source(s) checked"
+        },
+        {
+          "name": "workdir",
+          "ok": true,
+          "detail": "WORKDIR /app"
+        },
+        {
+          "name": "cmd_references_app",
+          "ok": true,
+          "detail": "[\"npm\", \"run\", \"start\"]"
+        },
+        {
+          "name": "expose_present",
+          "ok": true,
+          "detail": "EXPOSE 8000"
+        },
+        {
+          "name": "healthcheck_endpoint",
+          "ok": true,
+          "detail": "no /health HEALTHCHECK declared"
+        },
+        {
+          "name": "compose_exists",
+          "ok": true,
+          "detail": "D:\\sdlc_studio\\projects\\docsforge\\docker-compose.yml"
+        },
+        {
+          "name": "compose_parses",
+          "ok": true,
+          "detail": "compose is not a mapping"
+        },
+        {
+          "name": "compose_services",
+          "ok": true,
+          "detail": "services defined"
+        },
+        {
+          "name": "service_name:app",
+          "ok": true,
+          "detail": "valid service name"
+        },
+        {
+          "name": "build_context:app",
+          "ok": true,
+          "detail": "D:\\sdlc_studio\\projects\\docsforge"
+        },
+        {
+          "name": "build_dockerfile:app",
+          "ok": true,
+          "detail": "D:\\sdlc_studio\\projects\\docsforge\\Dockerfile"
+        },
+        {
+          "name": "port_matches_expose",
+          "ok": true,
+          "detail": "compose 8000 == EXPOSE 8000"
+        }
+      ],
+      "errors": []
+    },
+    "distribution": {
+      "status": "passed",
+      "detail": "docsforge-1.0.0.tar.gz: 17 member(s), no forbidden paths, src/ and requirements.txt present",
+      "tarball": "docsforge-1.0.0.tar.gz",
+      "members": 17,
+      "forbidden": [],
+      "forbidden_count": 0,
+      "missing": [],
+      "other_tarballs": [],
+      "required": true
+    },
+    "sbom": {
+      "status": "passed",
+      "detail": "all 1 declared dependency(ies) present in SBOM (4 package(s))",
+      "sbom_packages": 4,
+      "missing": [],
+      "declared": [
+        "pytest"
+      ],
+      "required": true
+    },
+    "smoke": {
+      "status": "skipped",
+      "detail": "src/main.py not found; no HTTP app to smoke test",
+      "required": true
+    },
+    "requested_exports": {
+      "status": "skipped",
+      "detail": "no requested distribution targets in config.json",
+      "required": true
+    },
+    "summary": {
+      "blocking_failures": [],
+      "counts": {
+        "passed": 9,
+        "failed": 0,
+        "skipped": 6,
+        "unavailable": 1
+      },
+      "required_checks": [
+        "requirements_verified",
+        "architecture_approved",
+        "dag_valid",
+        "implementation_tests_pass",
+        "integration_tests_pass",
+        "security_pass",
+        "openapi_valid",
+        "documentation_valid",
+        "docker_static_valid",
+        "docker_execution",
+        "distribution_valid",
+        "sbom_valid",
+        "smoke_test_pass",
+        "requested_exports_valid"
+      ],
+      "advisory_checks": [
+        "lint",
+        "types"
+      ]
+    }
+  }
+}

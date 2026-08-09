@@ -1,0 +1,13 @@
+{
+  "project": "DocForge",
+  "version": "0.1.0",
+  "artifact": "DocForge-0.1.0.zip",
+  "format": "source_zip",
+  "platform": "any",
+  "architecture": "universal",
+  "builder": "zipfile",
+  "build_status": "passed",
+  "validation_status": "passed",
+  "sha256": "6ee2fcaff5df816004275696d2434db875267d3918bc8abf7630425cecb508a2",
+  "output_path": "D:\\sdlc_studio\\projects\\docsforge\\exports\\source\\DocForge-0.1.0.zip"
+}
