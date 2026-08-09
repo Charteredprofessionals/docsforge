@@ -11,7 +11,8 @@ import {
   base64ToArrayBuffer,
   labelToTagName,
 } from "../lib/docxProcessor";
-import { Upload, Save, X, Plus, AlertCircle, ArrowLeft } from "lucide-react";
+import { Upload, Save, X, Plus, AlertCircle, ArrowLeft, Tag } from "lucide-react";
+import FieldModal from "./FieldModal";
 
 interface Props {
   onComplete: () => void;
@@ -25,6 +26,7 @@ export default function TemplateCreator({ onComplete }: Props) {
   const [templateName, setTemplateName] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeSelection, setActiveSelection] = useState<{ text: string; range: Range } | null>(null);
 
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -69,36 +71,32 @@ export default function TemplateCreator({ onComplete }: Props) {
     const selectedText = selection.toString().trim();
     if (selectedText.length === 0) return;
 
-    const label = prompt(`Create a fillable field for the selected text:\n\n"${selectedText}"\n\nEnter a label for this field:`);
-    if (!label || label.trim().length === 0) return;
+    const range = selection.getRangeAt(0).cloneRange();
+    setActiveSelection({ text: selectedText, range });
+  }, []);
 
-    const tagName = labelToTagName(label);
-    const existingTags = fields.map((f) => f.tagName);
-    const uniqueTagName = existingTags.includes(tagName)
-      ? `${tagName}_${fields.length + 1}`
-      : tagName;
-
-    const newField: TemplateField = {
-      id: uuidv4(),
-      label: label.trim(),
-      originalText: selectedText,
-      tagName: uniqueTagName,
-    };
+  const handleModalSave = (newField: TemplateField) => {
+    if (!activeSelection) return;
 
     setFields((prev) => [...prev, newField]);
 
     // Highlight the selected text in the preview
-    if (previewRef.current) {
-      const range = selection.getRangeAt(0);
-      const highlight = document.createElement("span");
-      highlight.className = "text-highlight";
-      highlight.setAttribute("data-field-id", newField.id);
-      highlight.title = `Field: ${label.trim()} → {{${uniqueTagName}}}`;
-      range.surroundContents(highlight);
+    if (previewRef.current && activeSelection.range) {
+      try {
+        const highlight = document.createElement("span");
+        highlight.className = "text-highlight bg-amber-400/20 text-amber-300 font-semibold px-1 rounded border border-amber-400/40";
+        highlight.setAttribute("data-field-id", newField.id);
+        highlight.title = `Field: ${newField.label} → {{${newField.tagName}}}`;
+        activeSelection.range.surroundContents(highlight);
+      } catch (e) {
+        // Fallback for complex cross-element selection
+      }
     }
 
-    selection.removeAllRanges();
-  }, [fields]);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    setActiveSelection(null);
+  };
 
   const removeField = (fieldId: string) => {
     setFields((prev) => prev.filter((f) => f.id !== fieldId));
@@ -266,15 +264,26 @@ export default function TemplateCreator({ onComplete }: Props) {
                 fields.map((field, index) => (
                   <div
                     key={field.id}
-                    className="bg-slate-700/50 border border-slate-600 rounded-lg p-3 group"
+                    className="bg-slate-700/50 border border-slate-600 rounded-xl p-3 group hover:border-slate-500 transition"
                   >
                     <div className="flex items-start justify-between mb-1">
-                      <span className="text-xs text-blue-400 font-mono">
-                        Field #{index + 1}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-blue-400 font-mono">
+                          #{index + 1}
+                        </span>
+                        {field.fieldType && field.fieldType !== "text" && (
+                          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-600">
+                            {field.fieldType}
+                          </span>
+                        )}
+                        {field.required && (
+                          <span className="text-red-400 text-xs font-bold" title="Required field">*</span>
+                        )}
+                      </div>
                       <button
                         onClick={() => removeField(field.id)}
-                        className="text-slate-500 hover:text-red-400 transition opacity-0 group-hover:opacity-100"
+                        className="text-slate-500 hover:text-red-400 transition opacity-0 group-hover:opacity-100 p-1"
+                        title="Remove field"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -282,7 +291,7 @@ export default function TemplateCreator({ onComplete }: Props) {
                     <div className="text-white text-sm font-medium mb-1">
                       {field.label}
                     </div>
-                    <div className="text-slate-400 text-xs truncate mb-1" title={field.originalText}>
+                    <div className="text-slate-400 text-xs truncate mb-1.5" title={field.originalText}>
                       "{field.originalText}"
                     </div>
                     <div className="text-xs font-mono text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded inline-block">
@@ -294,6 +303,16 @@ export default function TemplateCreator({ onComplete }: Props) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Field Creation Modal */}
+      {activeSelection && (
+        <FieldModal
+          selectedText={activeSelection.text}
+          existingTags={fields.map((f) => f.tagName)}
+          onSave={handleModalSave}
+          onCancel={() => setActiveSelection(null)}
+        />
       )}
     </div>
   );

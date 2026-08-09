@@ -3,11 +3,14 @@ import { AppView } from "./lib/types";
 import TemplateList from "./components/TemplateList";
 import TemplateCreator from "./components/TemplateCreator";
 import TemplateFiller from "./components/TemplateFiller";
-import { FileText, Plus, List } from "lucide-react";
+import AdminConsole from "./components/AdminConsole";
+import ConsentDialog from "./components/ConsentDialog";
+import { FileText, Plus, List, Shield, Settings } from "lucide-react";
 
 export default function App() {
   const [view, setView] = useState<AppView>("list");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [showConsentModal, setShowConsentModal] = useState(false);
 
   const handleCreateTemplate = () => {
     setView("create");
@@ -24,22 +27,26 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-900">
+    <div className="min-h-screen flex flex-col bg-slate-900 font-sans antialiased text-slate-100">
       {/* Header */}
-      <header className="bg-slate-800 border-b border-slate-700 px-6 py-4">
+      <header className="bg-slate-800/90 border-b border-slate-700/80 px-6 py-3.5 sticky top-0 z-40 backdrop-blur-md">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center gap-3">
-            <FileText className="w-8 h-8 text-blue-400" />
-            <h1 className="text-2xl font-bold text-white">DocForge</h1>
-            <span className="text-slate-400 text-sm ml-2">Document Automation</span>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={handleBackToList}>
+            <div className="w-9 h-9 bg-blue-600/20 border border-blue-500/30 rounded-xl flex items-center justify-center">
+              <FileText className="w-5 h-5 text-blue-400" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white tracking-tight leading-none">DocForge</h1>
+              <span className="text-slate-400 text-xs font-medium">Document Automation</span>
+            </div>
           </div>
-          <nav className="flex gap-2">
+          <nav className="flex items-center gap-1.5 bg-slate-900/60 p-1 rounded-xl border border-slate-700/50">
             <button
               onClick={handleBackToList}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
                 view === "list"
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-300 hover:bg-slate-700"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800"
               }`}
             >
               <List className="w-4 h-4" />
@@ -47,14 +54,33 @@ export default function App() {
             </button>
             <button
               onClick={handleCreateTemplate}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
                 view === "create"
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-300 hover:bg-slate-700"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800"
               }`}
             >
               <Plus className="w-4 h-4" />
               New Template
+            </button>
+            <button
+              onClick={() => setView("admin")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                view === "admin"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800"
+              }`}
+            >
+              <Settings className="w-4 h-4" />
+              Admin
+            </button>
+            <div className="h-4 w-px bg-slate-700 mx-1" />
+            <button
+              onClick={() => setShowConsentModal(true)}
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+              title="Privacy & Telemetry Settings"
+            >
+              <Shield className="w-4 h-4" />
             </button>
           </nav>
         </div>
@@ -69,7 +95,17 @@ export default function App() {
         {view === "fill" && selectedTemplateId && (
           <TemplateFiller templateId={selectedTemplateId} onBack={handleBackToList} />
         )}
+        {view === "admin" && <AdminConsole />}
       </main>
+
+      {/* Privacy Consent Modal */}
+      {showConsentModal && (
+        <ConsentDialog
+          onConfirm={(optIn, crashReports) => {
+            setShowConsentModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }

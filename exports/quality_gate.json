@@ -77,9 +77,9 @@
     },
     "distribution_valid": {
       "status": "passed",
-      "detail": "docsforge-1.0.0.tar.gz: 112 member(s), no forbidden paths, src/ and requirements.txt present",
+      "detail": "docsforge-1.0.0.tar.gz: 113 member(s), no forbidden paths, src/ and requirements.txt present",
       "tarball": "docsforge-1.0.0.tar.gz",
-      "members": 112,
+      "members": 113,
       "forbidden": [],
       "forbidden_count": 0,
       "missing": [],
@@ -116,7 +116,7 @@
       "returncode": 0,
       "ok": true,
       "failures": [],
-      "stdout": "........................                                                 [100%]\n24 passed in 0.63s\n",
+      "stdout": "........................                                                 [100%]\n24 passed in 0.91s\n",
       "stderr": ""
     },
     "lint": {
@@ -250,9 +250,9 @@
     },
     "distribution": {
       "status": "passed",
-      "detail": "docsforge-1.0.0.tar.gz: 112 member(s), no forbidden paths, src/ and requirements.txt present",
+      "detail": "docsforge-1.0.0.tar.gz: 113 member(s), no forbidden paths, src/ and requirements.txt present",
       "tarball": "docsforge-1.0.0.tar.gz",
-      "members": 112,
+      "members": 113,
       "forbidden": [],
       "forbidden_count": 0,
       "missing": [],

@@ -45,4 +45,4 @@ export interface UploadedDocx {
   textContent?: string;
 }
 
-export type AppView = "list" | "create" | "fill";
+export type AppView = "list" | "create" | "fill" | "admin";

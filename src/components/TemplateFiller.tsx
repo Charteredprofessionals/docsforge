@@ -15,6 +15,7 @@ import {
   AlertCircle,
   Eye,
   PenLine,
+  CheckCircle2,
 } from "lucide-react";
 
 interface Props {
@@ -33,6 +34,12 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [previewHtml, setPreviewHtml] = useState<string>("");
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 4000);
+  };
 
   useEffect(() => {
     loadTemplate();
@@ -93,6 +100,7 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
       const filledB64 = await fillTemplate();
       const filename = `${template.name}_filled.docx`;
       downloadBase64File(filledB64, filename);
+      showToast(`Exported ${filename} successfully!`);
     } catch (e) {
       setError("Failed to export Word: " + e);
     }
@@ -116,6 +124,7 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
 
       const parsed = JSON.parse(result);
       downloadBase64File(parsed.pdf_base64, parsed.filename);
+      showToast(`Exported ${parsed.filename} successfully!`);
     } catch (e) {
       const msg = String(e);
       if (msg.includes("LibreOffice not found")) {
@@ -233,44 +242,94 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
         <div className="flex-1 flex overflow-hidden">
           {/* Form panel */}
           <div className="flex-1 overflow-auto p-6">
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-4xl mx-auto">
               <div className="mb-6">
-                <h3 className="text-xl font-semibold text-white mb-2">
+                <h3 className="text-xl font-semibold text-white mb-1">
                   Fill Template Fields
                 </h3>
                 <p className="text-slate-400 text-sm">
-                  Enter values for each field. Click "Preview Document" to see the
-                  result, then export as Word or PDF.
+                  Enter values for each field. Click "Preview Document" to review, then export as Word or PDF.
                 </p>
               </div>
 
-              <div className="space-y-4">
-                {template.fields.map((field, index) => (
-                  <div key={field.id} className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-white font-medium text-sm">
-                        {field.label}
+              <div className={template.fields.length > 4 ? "grid grid-cols-1 md:grid-cols-2 gap-4" : "space-y-4"}>
+                {template.fields.map((field) => (
+                  <div key={field.id} className="bg-slate-800/90 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-white font-semibold text-sm flex items-center gap-1">
+                          {field.label}
+                          {field.required && <span className="text-red-400" title="Required field">*</span>}
+                        </label>
+                        <span className="text-xs font-mono text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">
+                          {`{{${field.tagName}}}`}
+                        </span>
+                      </div>
+                      <div className="text-slate-400 text-xs truncate mb-2.5" title={field.originalText}>
+                        Original: "{field.originalText}"
+                      </div>
+                    </div>
+
+                    {/* Input selector based on fieldType */}
+                    {field.fieldType === "dropdown" && field.options && field.options.length > 0 ? (
+                      <select
+                        value={fieldValues[field.tagName] || ""}
+                        onChange={(e) =>
+                          setFieldValues((prev) => ({
+                            ...prev,
+                            [field.tagName]: e.target.value,
+                          }))
+                        }
+                        className="w-full bg-slate-700 border border-slate-600 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">Select an option...</option>
+                        {field.options.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    ) : field.fieldType === "date" ? (
+                      <input
+                        type="date"
+                        value={fieldValues[field.tagName] || ""}
+                        onChange={(e) =>
+                          setFieldValues((prev) => ({
+                            ...prev,
+                            [field.tagName]: e.target.value,
+                          }))
+                        }
+                        className="w-full bg-slate-700 border border-slate-600 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    ) : field.fieldType === "checkbox" ? (
+                      <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer pt-1">
+                        <input
+                          type="checkbox"
+                          checked={fieldValues[field.tagName] === "true" || fieldValues[field.tagName] === "Yes"}
+                          onChange={(e) =>
+                            setFieldValues((prev) => ({
+                              ...prev,
+                              [field.tagName]: e.target.checked ? "Yes" : "No",
+                            }))
+                          }
+                          className="rounded bg-slate-700 border-slate-600 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                        />
+                        <span>Check to enable / accept</span>
                       </label>
-                      <span className="text-xs font-mono text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">
-                        {`{{${field.tagName}}}`}
-                      </span>
-                    </div>
-                    <div className="text-slate-500 text-xs mb-2">
-                      Original text: "{field.originalText}"
-                    </div>
-                    <input
-                      type="text"
-                      value={fieldValues[field.tagName] || ""}
-                      onChange={(e) =>
-                        setFieldValues((prev) => ({
-                          ...prev,
-                          [field.tagName]: e.target.value,
-                        }))
-                      }
-                      placeholder={`Enter value for ${field.label}...`}
-                      className="w-full bg-slate-700 border border-slate-600 text-white px-3 py-2 rounded-lg
-                               text-sm focus:outline-none focus:border-blue-500 placeholder-slate-500"
-                    />
+                    ) : (
+                      <input
+                        type="text"
+                        value={fieldValues[field.tagName] || ""}
+                        onChange={(e) =>
+                          setFieldValues((prev) => ({
+                            ...prev,
+                            [field.tagName]: e.target.value,
+                          }))
+                        }
+                        placeholder={`Enter ${field.label}...`}
+                        className="w-full bg-slate-700 border border-slate-600 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-blue-500 placeholder-slate-500"
+                      />
+                    )}
                   </div>
                 ))}
               </div>
@@ -324,6 +383,14 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
             className="docx-preview"
             dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 bg-slate-800 border border-green-500/60 text-green-300 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm z-50 animate-in fade-in duration-200">
+          <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
+          <span className="font-medium">{toast}</span>
         </div>
       )}
     </div>
