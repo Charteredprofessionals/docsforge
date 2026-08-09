@@ -17,4 +17,20 @@ export default defineConfig({
       ignored: ["**/src-tauri/**"],
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks - split major dependencies
+          "vendor-react": ["react", "react-dom"],
+          "vendor-icons": ["lucide-react"],
+          "vendor-mammoth": ["mammoth"],
+          "vendor-uuid": ["uuid"],
+        },
+      },
+    },
+    // Enable brotli/gzip pre-compression for smaller assets
+    assetsInlineLimit: 4096,
+    chunkSizeWarningLimit: 1000,
+  },
 });
