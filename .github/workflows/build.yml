@@ -36,4 +36,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: DocForge-Binaries
-          path: projects/docsforge/src-tauri/target/release/
+          path: src-tauri/target/release/
