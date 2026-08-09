@@ -2,8 +2,8 @@ pub mod core;
 pub mod infra;
 pub mod migrations;
 pub mod services;
-mod commands;
-mod schema;
+pub mod commands;
+pub mod schema;
 
 use rusqlite::Connection;
 use std::sync::Mutex;

@@ -92,8 +92,7 @@ pub fn validate_docx(bytes: &[u8]) -> Result<(), DocForgeError> {
         ));
     }
 
-    let mut doc_xml = String::new();
-    {
+    let doc_xml = {
         let mut file = archive
             .by_name("word/document.xml")
             .map_err(|e| DocForgeError::InvalidDocx(format!("Read document.xml header: {e}")))?;
@@ -102,8 +101,8 @@ pub fn validate_docx(bytes: &[u8]) -> Result<(), DocForgeError> {
         let n = file.read(&mut head_buf).map_err(|e| {
             DocForgeError::InvalidDocx(format!("Read document.xml preamble: {e}"))
         })?;
-        doc_xml = String::from_utf8_lossy(&head_buf[..n]).to_string();
-    }
+        String::from_utf8_lossy(&head_buf[..n]).to_string()
+    };
 
     if doc_xml.contains("<!DOCTYPE") || doc_xml.contains("<!ENTITY") {
         return Err(DocForgeError::InvalidDocx(

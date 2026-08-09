@@ -9,7 +9,8 @@ use uuid::Uuid;
 use crate::core::docx_engine::TemplateFieldSpec;
 use crate::core::error::DocForgeError;
 use crate::core::template::{TemplateRecord, TemplateStatus};
-use crate::core::template_store::{compute_sha256, get_templates_dir, load_template_meta};
+use crate::core::template_store::{atomic_write, compute_sha256, get_templates_dir, load_template_meta};
+use crate::infra::crypto::encrypt_at_rest;
 
 /// Represents a version snapshot of a template.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -45,9 +46,9 @@ pub fn create_template_version(
     })?;
 
     let file_path = version_dir.join("template.docx");
-    fs::write(&file_path, docx_bytes).map_err(|e| {
-        DocForgeError::StorageIo(format!("Write version DOCX file: {e}"))
-    })?;
+    let protected = encrypt_at_rest(docx_bytes)
+        .map_err(|e| DocForgeError::StorageIo(format!("Encrypt version DOCX: {e}")))?;
+    atomic_write(&file_path, &protected)?;
 
     let storage_path = file_path.to_string_lossy().to_string();
     let sha256_hash = compute_sha256(docx_bytes);
@@ -57,31 +58,46 @@ pub fn create_template_version(
     let version_id = format!("ver_{}", Uuid::new_v4());
     let status_str = current_meta.status.to_string();
 
-    conn.execute(
-        "INSERT INTO template_versions (
-            id, template_id, version, status, storage_path, fields_json, content_sha256, note, created_by
-        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
-        params![
-            version_id,
-            template_id,
-            new_version,
-            status_str,
-            storage_path,
-            fields_json,
-            sha256_hash,
-            note,
-            user_id,
-        ],
-    )
-    .map_err(|e| DocForgeError::StorageIo(format!("Insert template_version: {e}")))?;
+    conn.execute_batch("BEGIN TRANSACTION;")
+        .map_err(|e| DocForgeError::StorageIo(format!("Begin transaction: {e}")))?;
 
-    conn.execute(
-        "UPDATE templates SET current_version = ?1, storage_path = ?2, fields_json = ?3,
-                              content_sha256 = ?4, updated_at = datetime('now')
-         WHERE id = ?5",
-        params![new_version, storage_path, fields_json, sha256_hash, template_id],
-    )
-    .map_err(|e| DocForgeError::StorageIo(format!("Update template head version: {e}")))?;
+    let write_res: Result<(), DocForgeError> = (|| {
+        conn.execute(
+            "INSERT INTO template_versions (
+                id, template_id, version, status, storage_path, fields_json, content_sha256, note, created_by
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            params![
+                version_id,
+                template_id,
+                new_version,
+                status_str,
+                storage_path,
+                fields_json,
+                sha256_hash,
+                note,
+                user_id,
+            ],
+        )
+        .map_err(|e| DocForgeError::StorageIo(format!("Insert template_version: {e}")))?;
+
+        conn.execute(
+            "UPDATE templates SET current_version = ?1, storage_path = ?2, fields_json = ?3,
+                                  content_sha256 = ?4, updated_at = datetime('now')
+             WHERE id = ?5",
+            params![new_version, storage_path, fields_json, sha256_hash, template_id],
+        )
+        .map_err(|e| DocForgeError::StorageIo(format!("Update template head version: {e}")))?;
+
+        Ok(())
+    })();
+
+    if let Err(err) = write_res {
+        let _ = conn.execute_batch("ROLLBACK;");
+        return Err(err);
+    }
+
+    conn.execute_batch("COMMIT;")
+        .map_err(|e| DocForgeError::StorageIo(format!("Commit transaction: {e}")))?;
 
     Ok(TemplateVersionRecord {
         id: version_id,

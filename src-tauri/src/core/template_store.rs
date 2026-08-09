@@ -14,6 +14,7 @@ use uuid::Uuid;
 use crate::core::docx_engine::TemplateFieldSpec;
 use crate::core::error::DocForgeError;
 use crate::core::template::{TemplateRecord, TemplateStatus};
+use crate::infra::crypto::{decrypt_at_rest, encrypt_at_rest};
 
 /// Returns the base directory path for template storage under app data.
 pub fn get_templates_dir() -> PathBuf {
@@ -78,8 +79,10 @@ pub fn save_template(
     let fields_json = serde_json::to_string(fields)
         .map_err(|e| DocForgeError::Internal(format!("Serialize fields: {e}")))?;
 
-    fs::write(&file_path, docx_bytes)
-        .map_err(|e| DocForgeError::StorageIo(format!("Failed to write DOCX file: {e}")))?;
+    // Encrypt at rest (DPAPI on Windows) and write atomically (temp + rename).
+    let protected = encrypt_at_rest(docx_bytes)
+        .map_err(|e| DocForgeError::StorageIo(format!("Encrypt template: {e}")))?;
+    atomic_write(&file_path, &protected)?;
 
     let storage_path = file_path.to_string_lossy().to_string();
 
@@ -184,8 +187,10 @@ pub fn load_template_file(
         )));
     }
 
-    let bytes = fs::read(&path)
+    let raw = fs::read(&path)
         .map_err(|e| DocForgeError::StorageIo(format!("Read template file: {e}")))?;
+    let bytes = decrypt_at_rest(&raw)
+        .map_err(|e| DocForgeError::StorageIo(format!("Decrypt template: {e}")))?;
 
     let actual_sha256 = compute_sha256(&bytes);
     if actual_sha256 != record.content_sha256 {
@@ -268,4 +273,63 @@ pub fn delete_template(conn: &Connection, template_id: &str) -> Result<(), DocFo
         .map_err(|e| DocForgeError::StorageIo(format!("DB delete: {e}")))?;
 
     Ok(())
+}
+
+/// Writes `data` to `path` atomically: a temp file is written then renamed into place,
+/// so a crash mid-write cannot leave a half-written template file behind.
+pub(crate) fn atomic_write(path: &Path, data: &[u8]) -> Result<(), DocForgeError> {
+    let dir = path.parent().unwrap_or_else(|| Path::new("."));
+    let tmp = dir.join(format!(".docforge_tmp_{}", Uuid::new_v4()));
+    fs::write(&tmp, data).map_err(|e| DocForgeError::StorageIo(format!("Write temp file: {e}")))?;
+    std::fs::rename(&tmp, path).map_err(|e| {
+        let _ = fs::remove_file(&tmp);
+        DocForgeError::StorageIo(format!("Rename temp file: {e}"))
+    })?;
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::schema::init_memory_db;
+
+    #[test]
+    fn test_save_load_encrypted_template_roundtrip() {
+        let conn = init_memory_db().expect("init memory db");
+        let fake_docx = b"PK\x03\x04_mock_docx_binary_content_123456789";
+        let fields = vec![TemplateFieldSpec {
+            id: "f1".to_string(),
+            label: "Test Field".to_string(),
+            original_text: "Sample".to_string(),
+            tag_name: "test_field".to_string(),
+        }];
+
+        let record = save_template(
+            &conn,
+            "Test Template",
+            "general",
+            "A test description",
+            &fields,
+            fake_docx,
+            None,
+            None,
+        )
+        .expect("save_template should succeed");
+
+        assert_eq!(record.name, "Test Template");
+        assert_eq!(record.fields.len(), 1);
+
+        let (loaded_record, loaded_bytes) = load_template_file(&conn, &record.id)
+            .expect("load_template_file should succeed");
+
+        assert_eq!(loaded_record.id, record.id);
+        assert_eq!(&loaded_bytes[..], &fake_docx[..]);
+
+        let list = list_templates(&conn, None).expect("list_templates should succeed");
+        assert_eq!(list.len(), 1);
+
+        delete_template(&conn, &record.id).expect("delete_template should succeed");
+        let list_after = list_templates(&conn, None).expect("list_templates after delete");
+        assert_eq!(list_after.len(), 0);
+    }
 }
