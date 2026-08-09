@@ -116,7 +116,7 @@
       "returncode": 0,
       "ok": true,
       "failures": [],
-      "stdout": "........................                                                 [100%]\n24 passed in 0.89s\n",
+      "stdout": "........................                                                 [100%]\n24 passed in 0.96s\n",
       "stderr": ""
     },
     "lint": {
