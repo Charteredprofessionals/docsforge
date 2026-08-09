@@ -25,11 +25,9 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install Dependencies
-        working-directory: ./projects/docsforge
         run: npm ci
 
       - name: Build Tauri Binary
-        working-directory: ./projects/docsforge
         run: |
           npm run build
           npx tauri build
