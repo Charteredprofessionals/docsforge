@@ -8,6 +8,19 @@ to the cloud. Everything runs locally on your machine.
 > **Privacy note:** DocForge is fully offline. Documents, templates, and field values are
 > stored only on your computer. No internet connection or account is required.
 
+### DocForge in one minute
+Imagine you send the same kind of letter every week — an offer letter, a contract, an
+invoice — but the names and dates change each time. Instead of retyping the document, you:
+1. **Make a template once** from your Word file (mark the parts that change as "fields").
+2. **Click the template** and type in just those changing parts.
+3. **Export** a finished, formatted Word or PDF document in seconds.
+
+That is DocForge. You do it all on your own computer; nothing leaves your machine.
+
+### Everyday workflow at a glance
+- **Create** a template from any `.docx` file → **Use** it whenever you need the document →
+  **Export** a filled Word or PDF. Repeat forever; create the template only once.
+
 ---
 
 ## 1. Getting Started
@@ -56,6 +69,15 @@ spot of text that gets replaced with a value when you generate a document.
    - Repeat for every spot you want to fill later (names, dates, addresses, clauses, etc.).
    - To remove a field, hover its card in the right sidebar and click the **X**.
 4. Click **Save Template**. You return to the Templates list.
+
+**Worked example** — an offer letter:
+1. Start from `OfferLetter.docx` containing: *"Dear **Jane Doe**, your start date is
+   **January 5, 2026**."*
+2. Select `Jane Doe` → label it `Candidate Name`.
+3. Select `January 5, 2026` → label it `Start Date`.
+4. Save as "Offer Letter".
+5. Next time, open the template, type the new candidate's name and start date, and export.
+   The letter is produced in seconds with correct formatting.
 
 **Tips**
 - Field labels become `{{tag}}` placeholders inside the document. Keep labels unique and
@@ -118,8 +140,8 @@ These are local operation messages — nothing is transmitted externally.
 ## 6. Privacy & Data Residency
 
 - **Local-only:** All processing happens on your device. No telemetry is sent.
-- **Storage:** Templates and documents live under your Windows user profile
-  (`%APPDATA%` / local app-data for DocForge).
+ - **Storage:** Templates and documents are saved on this computer (in your Windows user
+   profile), so they stay available the next time you open DocForge.
 - **On-Premises build:** An air-gapped `docforge-onprem` engine variant is available for
   enterprise deployment with telemetry hard-disabled at compile time.
 
