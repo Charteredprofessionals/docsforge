@@ -6,20 +6,23 @@ dist/
 src-tauri/target/
 tsconfig.tsbuildinfo
 
-# Generated distribution archives and native installers
-exports/source/*.zip
-exports/source/*.tar.gz
+# Generated databases / caches
+symbols.db
+*.db
+.pytest_cache/
+__pycache__/
+*.pyc
+
+# Generated distribution artifacts and native installers
+exports/source/
+exports/windows/
 exports/*.tar.gz
 exports/*.zip
-exports/windows/
 *.exe
 *.msi
 *.msix
 
 # Caches & Environment
-.pytest_cache/
-__pycache__/
-*.pyc
 .env
 .env.local
 

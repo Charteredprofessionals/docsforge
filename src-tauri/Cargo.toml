@@ -22,3 +22,10 @@ chrono = "0.4"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["dpapi", "wincrypt", "winbase", "minwindef"] }
+
+[profile.release]
+opt-level = "z"     # optimize for size
+lto = true          # link-time optimization (smaller, faster binaries)
+codegen-units = 1   # better optimization, single codegen unit
+panic = "abort"     # smaller binary, no unwinding tables
+strip = true        # strip symbols for release binaries
