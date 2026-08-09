@@ -27,7 +27,15 @@ pub fn apply_migrations(conn: &mut Connection) -> Result<()> {
         |row| row.get(0),
     ).unwrap_or(0);
 
-    if current_version < 2 {
+    let has_v2_templates: bool = conn
+        .prepare("PRAGMA table_info(templates)")
+        .and_then(|mut stmt| {
+            stmt.query_map([], |row| row.get::<_, String>(1))
+                .map(|rows| rows.filter_map(|r| r.ok()).any(|col| col == "org_id"))
+        })
+        .unwrap_or(false);
+
+    if current_version < 2 || !has_v2_templates {
         let tx = conn.transaction()?;
         migration_v2(&tx)?;
         tx.pragma_update(None, "user_version", 2)?;
@@ -58,6 +66,17 @@ fn migration_v1(tx: &Transaction) -> Result<()> {
 }
 
 fn migration_v2(tx: &Transaction) -> Result<()> {
+    // If an old `templates` table exists without `org_id` column, drop it so v2 table is created cleanly.
+    let has_org_id: bool = tx
+        .prepare("PRAGMA table_info(templates)")?
+        .query_map([], |row| row.get::<_, String>(1))?
+        .filter_map(|r| r.ok())
+        .any(|col| col == "org_id");
+
+    if !has_org_id {
+        let _ = tx.execute_batch("DROP TABLE IF EXISTS templates;");
+    }
+
     tx.execute_batch(
         "
         -- 1. Orgs
