@@ -3,13 +3,12 @@
 use std::collections::HashMap;
 use rusqlite::Connection;
 
-use crate::core::docx_engine::{fill_document, tag_document, validate_docx, TemplateFieldSpec};
+use crate::core::docx_engine::{fill_document, validate_docx, TemplateFieldSpec};
 use crate::core::error::DocForgeError;
-use crate::core::export::{export_dfpkg, export_docx, export_pdf, render_sanitized_html};
-use crate::core::governance::{record_generation, transition_template_status, UserRole};
-use crate::core::licensing::{evaluate_entitlement, Feature, LicenseTier};
-use crate::core::template::{TemplateRecord, TemplateStatus};
-use crate::core::template_store::{delete_template, list_templates, load_template_file, load_template_meta, save_template};
+use crate::core::export::{export_dfpkg, export_pdf};
+use crate::core::governance::record_generation;
+use crate::core::template::TemplateRecord;
+use crate::core::template_store::save_template;
 
 pub struct DocumentService;
 

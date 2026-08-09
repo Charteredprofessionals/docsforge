@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::io::{Cursor, Read, Write};
 use zip::{write::SimpleFileOptions, CompressionMethod, ZipArchive, ZipWriter};
 
-use quick_xml::events::Event;
+use quick_xml::events::{BytesText, Event};
 use quick_xml::Reader as XmlReader;
 use quick_xml::Writer as XmlWriter;
 
@@ -92,7 +92,7 @@ pub fn validate_docx(bytes: &[u8]) -> Result<(), DocForgeError> {
         ));
     }
 
-    let mut doc_xml = String::new();
+    let mut _doc_xml = String::new();
     {
         let mut file = archive
             .by_name("word/document.xml")
@@ -227,7 +227,7 @@ where
                 if tag_name == "w:t" {
                     let transformed = transform(&text_buf);
                     writer
-                        .write_event(Event::Text(transformed.into()))
+                        .write_event(Event::Text(BytesText::new(&transformed)))
                         .map_err(|e| DocForgeError::Internal(format!("Write XML text: {e}")))?;
                     text_buf.clear();
                 }

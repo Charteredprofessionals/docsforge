@@ -257,7 +257,7 @@ pub fn list_templates(
 
 /// Deletes a template from disk and SQLite.
 pub fn delete_template(conn: &Connection, template_id: &str) -> Result<(), DocForgeError> {
-    let record = load_template_meta(conn, template_id)?;
+    let _record = load_template_meta(conn, template_id)?;
 
     let base_dir = get_templates_dir().join(template_id);
     if base_dir.exists() {

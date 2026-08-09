@@ -1,10 +1,10 @@
 use base64::{engine::general_purpose, Engine as _};
-use quick_xml::events::Event;
+use quick_xml::events::{BytesText, Event};
 use quick_xml::Reader as XmlReader;
 use quick_xml::Writer;
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
-use std::io::Cursor;
+use std::io::{Cursor, Read, Write};
 use tauri::State;
 use uuid::Uuid;
 use zip::ZipArchive;
@@ -194,7 +194,7 @@ fn xml_replace_with_tags(xml: &str, fields: &[TemplateField]) -> Result<String, 
                 if tag_name == "w:t" {
                     let replaced = replace_in_text(&text_buf, fields);
                     writer
-                        .write_event(Event::Text(replaced.into()))
+                        .write_event(Event::Text(BytesText::new(&replaced)))
                         .map_err(|e| format!("Write text: {e}"))?;
                     text_buf.clear();
                 }

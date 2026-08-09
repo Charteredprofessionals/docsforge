@@ -105,7 +105,7 @@ pub fn rollback_template_version(
     target_version: i32,
     user_id: Option<&str>,
 ) -> Result<TemplateRecord, DocForgeError> {
-    let (target_storage_path, fields_json, sha256_hash): (String, String, String) = conn
+    let (target_storage_path, fields_json, _sha256_hash): (String, String, String) = conn
         .query_row(
             "SELECT storage_path, fields_json, content_sha256 FROM template_versions
              WHERE template_id = ?1 AND version = ?2",
