@@ -92,7 +92,7 @@ pub fn validate_docx(bytes: &[u8]) -> Result<(), DocForgeError> {
         ));
     }
 
-    let mut _doc_xml = String::new();
+    let mut doc_xml = String::new();
     {
         let mut file = archive
             .by_name("word/document.xml")

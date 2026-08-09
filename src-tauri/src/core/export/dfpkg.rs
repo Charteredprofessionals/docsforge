@@ -2,11 +2,9 @@
 //!
 //! Bundles DOCX template binary, fields definition, metadata, and versioning info into a single portable zip archive.
 
-use std::collections::HashMap;
 use std::io::{Cursor, Read, Write};
 use zip::{write::SimpleFileOptions, CompressionMethod, ZipArchive, ZipWriter};
 
-use crate::core::docx_engine::TemplateFieldSpec;
 use crate::core::error::DocForgeError;
 use crate::core::template::TemplateRecord;
 

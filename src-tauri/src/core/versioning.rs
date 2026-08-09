@@ -3,7 +3,6 @@
 //! Provides transactional snapshot versioning and non-destructive rollbacks for templates.
 
 use std::fs;
-use std::path::PathBuf;
 use rusqlite::{params, Connection};
 use uuid::Uuid;
 

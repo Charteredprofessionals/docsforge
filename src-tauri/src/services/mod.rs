@@ -8,7 +8,7 @@ use crate::core::error::DocForgeError;
 use crate::core::export::{export_dfpkg, export_pdf};
 use crate::core::governance::record_generation;
 use crate::core::template::TemplateRecord;
-use crate::core::template_store::save_template;
+use crate::core::template_store::{load_template_file, save_template};
 
 pub struct DocumentService;
 
