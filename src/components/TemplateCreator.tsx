@@ -38,7 +38,7 @@ export default function TemplateCreator({ onComplete }: Props) {
 
       if (!selected) return;
 
-      const filePath = typeof selected === "string" ? selected : selected.path;
+      const filePath = selected;
 
       const result = await invoke<string>("upload_docx", {
         filePath,
@@ -47,6 +47,9 @@ export default function TemplateCreator({ onComplete }: Props) {
       const parsed: UploadedDocx = JSON.parse(result);
       setUploadedDocx(parsed);
 
+      if (!parsed.base64) {
+        throw new Error("Uploaded document did not return base64 content.");
+      }
       const html = await docxToHtml(base64ToArrayBuffer(parsed.base64));
       setHtmlPreview(html);
 

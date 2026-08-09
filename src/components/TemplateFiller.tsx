@@ -4,7 +4,6 @@ import { TemplateFull } from "../lib/types";
 import {
   docxToHtml,
   base64ToArrayBuffer,
-  generateFilledDocx,
   downloadBase64File,
 } from "../lib/docxProcessor";
 import {
@@ -39,6 +38,17 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
     loadTemplate();
   }, [templateId]);
 
+  const fillTemplate = async (): Promise<string> => {
+    const result = await invoke<string>("fill_template", {
+      request: {
+        templateId: templateId,
+        values: fieldValues,
+      },
+    });
+    const parsed = JSON.parse(result);
+    return parsed.docx_base64 as string;
+  };
+
   const loadTemplate = async () => {
     setLoading(true);
     setError(null);
@@ -66,7 +76,7 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
     if (!template) return;
 
     try {
-      const filledB64 = generateFilledDocx(template.template_docx_b64, fieldValues);
+      const filledB64 = await fillTemplate();
       const buffer = base64ToArrayBuffer(filledB64);
       const html = await docxToHtml(buffer);
       setPreviewHtml(html);
@@ -76,11 +86,11 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
     }
   };
 
-  const handleExportWord = () => {
+  const handleExportWord = async () => {
     if (!template) return;
 
     try {
-      const filledB64 = generateFilledDocx(template.template_docx_b64, fieldValues);
+      const filledB64 = await fillTemplate();
       const filename = `${template.name}_filled.docx`;
       downloadBase64File(filledB64, filename);
     } catch (e) {
@@ -95,7 +105,7 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
     setError(null);
 
     try {
-      const filledB64 = generateFilledDocx(template.template_docx_b64, fieldValues);
+      const filledB64 = await fillTemplate();
 
       const result = await invoke<string>("export_to_pdf", {
         request: {

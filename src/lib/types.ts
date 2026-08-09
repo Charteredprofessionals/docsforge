@@ -35,6 +35,7 @@ export interface TemplateFull {
   version: number;
   status: TemplateStatus;
   fields: TemplateField[];
+  template_docx_b64: string;
   created_at: string;
 }
 

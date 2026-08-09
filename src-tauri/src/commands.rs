@@ -326,6 +326,102 @@ pub fn get_template(state: State<AppState>, template_id: String) -> Result<Strin
     serde_json::to_string(&full).map_err(|e| format!("Serialize: {e}"))
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FillTemplateRequest {
+    pub template_id: String,
+    pub values: std::collections::HashMap<String, String>,
+}
+
+#[tauri::command]
+pub fn fill_template(
+    state: State<AppState>,
+    request: FillTemplateRequest,
+) -> Result<String, String> {
+    let db = state.db.lock().map_err(|e| format!("DB lock: {e}"))?;
+
+    let template_docx: Vec<u8> = db
+        .query_row(
+            "SELECT template_docx FROM templates WHERE id = ?1",
+            params![request.template_id],
+            |row| row.get(0),
+        )
+        .map_err(|e| format!("Template not found: {e}"))?;
+
+    let filled = fill_docx_with_values(&template_docx, &request.values)?;
+
+    let b64 = general_purpose::STANDARD.encode(&filled);
+
+    Ok(serde_json::json!({ "docx_base64": b64 }).to_string())
+}
+
+/// Replace {{tag}} placeholders inside word/document.xml with provided values.
+fn fill_docx_with_values(
+    template_bytes: &[u8],
+    values: &std::collections::HashMap<String, String>,
+) -> Result<Vec<u8>, String> {
+    let cursor = std::io::Cursor::new(template_bytes);
+    let mut archive = ZipArchive::new(cursor).map_err(|e| format!("Invalid docx zip: {e}"))?;
+
+    let mut document_xml = String::new();
+    {
+        let mut file = archive
+            .by_name("word/document.xml")
+            .map_err(|e| format!("No word/document.xml: {e}"))?;
+        file.read_to_string(&mut document_xml)
+            .map_err(|e| format!("Read document.xml: {e}"))?;
+    }
+
+    document_xml = xml_fill_values(&document_xml, values)?;
+
+    let output = Vec::new();
+    let cursor_out = std::io::Cursor::new(output);
+    let mut zip_out = zip::ZipWriter::new(cursor_out);
+
+    let options = zip::write::SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated);
+
+    for i in 0..archive.len() {
+        let mut file = archive
+            .by_index(i)
+            .map_err(|e| format!("Archive index {i}: {e}"))?;
+
+        let name = file.name().to_string();
+
+        zip_out
+            .start_file(&name, options)
+            .map_err(|e| format!("Zip start {name}: {e}"))?;
+
+        if name == "word/document.xml" {
+            zip_out
+                .write_all(document_xml.as_bytes())
+                .map_err(|e| format!("Zip write document.xml: {e}"))?;
+        } else {
+            let mut buf = Vec::new();
+            file.read_to_end(&mut buf)
+                .map_err(|e| format!("Read {name}: {e}"))?;
+            zip_out
+                .write_all(&buf)
+                .map_err(|e| format!("Write {name}: {e}"))?;
+        }
+    }
+
+    let cursor_final = zip_out.finish().map_err(|e| format!("Zip finish: {e}"))?;
+
+    Ok(cursor_final.into_inner())
+}
+
+fn xml_fill_values(
+    xml: &str,
+    values: &std::collections::HashMap<String, String>,
+) -> Result<String, String> {
+    let mut result = xml.to_string();
+    for (tag, value) in values {
+        let placeholder = format!("{{{{{}}}}}", tag);
+        result = result.replace(&placeholder, value);
+    }
+    Ok(result)
+}
+
 #[tauri::command]
 pub fn delete_template(state: State<AppState>, template_id: String) -> Result<String, String> {
     let db = state.db.lock().map_err(|e| format!("DB lock: {e}"))?;

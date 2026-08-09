@@ -23,6 +23,7 @@ pub fn run() {
             commands::save_template,
             commands::list_templates,
             commands::get_template,
+            commands::fill_template,
             commands::delete_template,
             commands::export_to_pdf,
         ])
