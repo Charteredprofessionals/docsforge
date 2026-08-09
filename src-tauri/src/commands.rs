@@ -1,5 +1,4 @@
 use base64::{engine::general_purpose, Engine as _};
-use rusqlite::params;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Read;
