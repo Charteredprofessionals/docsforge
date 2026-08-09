@@ -30,10 +30,66 @@ jobs:
       - name: Build Tauri Binary
         run: |
           npm run build
-          npx tauri build
+          npx tauri build --bundles msi,nsis
 
       - name: Upload Binaries
         uses: actions/upload-artifact@v4
         with:
           name: DocForge-Binaries
-          path: src-tauri/target/release/
+          path: |
+            src-tauri/target/release/bundle/msi/
+            src-tauri/target/release/bundle/nsis/
+
+  build-msix:
+    name: Build MSIX Package (Optional)
+    runs-on: windows-latest
+    continues-on-error: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Rust Stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Tauri MSIX Bundle
+        run: npx tauri build --bundles msix
+
+      - name: Upload MSIX Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: DocForge-MSIX
+          path: src-tauri/target/release/bundle/msix/
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: DocForge-Binaries
+          path: ./artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: DocForge v1.0.0
+          tag_name: v1.0.0
+          generate_release_notes: true
+          files: |
+            ./artifacts/**/DocForge*
