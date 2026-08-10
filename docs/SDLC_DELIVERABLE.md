@@ -32,6 +32,9 @@ DocForge solves a real pain point for organizations that produce repeatable docu
 | FR-12 | Telemetry consent defaults to OPT-OUT | ✅ | `services/telemetry.rs`, `telemetry_consent` table |
 | FR-13 | Headless CLI engine for automation (`docforge-cli`) | ✅ | `src/tools/docforge_cli.rs` (feature `cli`) |
 | FR-14 | Air-gapped on-prem engine (`docforge-onprem`) | ✅ | `src/tools/docforge_onprem.rs` (feature `onprem`) |
+| FR-15 | **Native-Rust PDF export fallback** (no LibreOffice needed) | ✅ | `core/export/pdf.rs` (`printpdf`+`docx-rs`), `commands::export_to_pdf` |
+| FR-16 | **Database backup / restore** | ✅ | `commands::backup_database` / `restore_database`, Admin → Data tab |
+| FR-17 | **Template Bundles** (group templates) | ✅ | `migrations.rs` v3, `core/bundles.rs`, `components/Bundles.tsx` |
 
 ### 1.3 Non-functional requirements (NFR)
 
@@ -332,15 +335,22 @@ cargo build --features onprem --bin docforge-onprem --manifest-path src-tauri/Ca
 | TC-18 | `test_enterprise_outputs_exist` | Enterprise features | integration |
 | TC-19 | `test_quality_gate_spec` | Quality gate | process |
 | TC-20 | `fidelity_gate` (Rust) | Round-trip docx fidelity | integration |
+| TC-21 | `core::bundles::tests::test_bundle_crud` | Bundle create/list/add/remove/delete | unit |
+| TC-22 | `core::export::pdf::tests::test_native_pdf_marks_valid_header` | Native PDF produces valid `%PDF` | unit |
+| TC-23 | `core::export::pdf::tests::test_strip_html_removes_tags` | HTML→text fallback | unit |
 
 ### 4.2 Execution results (verified 2026-08-10)
 
 ```
-pytest tests/  ->  24 passed in 0.10s
-cargo test     ->  test result: ok. 1 passed (fidelity_gate)
+pytest tests/  ->  24 passed in 0.11s
+cargo test     ->  test result: ok. 9 passed (fidelity_gate + bundles + native PDF)
 ```
 
-Python suite: **24 passed / 0 failed**. Rust suite: **1 passed / 0 failed**.
+Python suite: **24 passed / 0 failed**. Rust suite: **9 passed / 0 failed**.
+
+> Feature adoption note (ADR-009): the native-Rust PDF fallback (`printpdf`+`docx-rs`),
+> DB backup/restore, and Template Bundles were adopted from the `templatebuilder` sibling
+> project and re-implemented inside `docforge-core` (see `docs/COMPARISON_TEMPLATEBUILDER.md`).
 
 ### 4.3 Identified bugs & fixes (defect log)
 

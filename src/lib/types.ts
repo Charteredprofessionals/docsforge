@@ -45,4 +45,11 @@ export interface UploadedDocx {
   textContent?: string;
 }
 
-export type AppView = "list" | "create" | "fill" | "admin";
+export interface Bundle {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+}
+
+export type AppView = "list" | "create" | "fill" | "admin" | "bundles";

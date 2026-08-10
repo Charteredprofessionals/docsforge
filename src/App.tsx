@@ -4,8 +4,9 @@ import TemplateList from "./components/TemplateList";
 import TemplateCreator from "./components/TemplateCreator";
 import TemplateFiller from "./components/TemplateFiller";
 import AdminConsole from "./components/AdminConsole";
+import Bundles from "./components/Bundles";
 import ConsentDialog from "./components/ConsentDialog";
-import { FileText, Plus, List, Shield, Settings } from "lucide-react";
+import { FileText, Plus, List, Shield, Settings, Layers } from "lucide-react";
 
 export default function App() {
   const [view, setView] = useState<AppView>("list");
@@ -64,6 +65,17 @@ export default function App() {
               New Template
             </button>
             <button
+              onClick={() => setView("bundles")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                view === "bundles"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800"
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              Bundles
+            </button>
+            <button
               onClick={() => setView("admin")}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
                 view === "admin"
@@ -96,6 +108,7 @@ export default function App() {
           <TemplateFiller templateId={selectedTemplateId} onBack={handleBackToList} />
         )}
         {view === "admin" && <AdminConsole />}
+        {view === "bundles" && <Bundles />}
       </main>
 
       {/* Privacy Consent Modal */}

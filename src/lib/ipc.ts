@@ -51,3 +51,59 @@ export async function invokeBinaryApi<T>(
 ): Promise<T> {
   return invokeApi<T>(cmd, { ...args, binaryData: Array.from(payload) });
 }
+
+export async function listTemplates(): Promise<import("./types").TemplateMeta[]> {
+  return invokeApi<import("./types").TemplateMeta[]>("list_templates", {});
+}
+
+// ── Database backup / restore ─────────────────────────────────────────────────
+
+export async function backupDatabase(targetPath: string): Promise<void> {
+  return invokeApi<void>("backup_database", { targetPath });
+}
+
+export async function restoreDatabase(sourcePath: string): Promise<void> {
+  return invokeApi<void>("restore_database", { sourcePath });
+}
+
+// ── Template Bundles ──────────────────────────────────────────────────────────
+
+export interface CreateBundleInput {
+  name: string;
+  description?: string;
+  templateIds: string[];
+}
+
+export async function createBundle(input: CreateBundleInput): Promise<string> {
+  return invokeApi<string>("create_bundle_cmd", {
+    name: input.name,
+    description: input.description,
+    templateIds: input.templateIds,
+  });
+}
+
+export async function listBundles(): Promise<import("./types").Bundle[]> {
+  return invokeApi<import("./types").Bundle[]>("list_bundles_cmd", {});
+}
+
+export async function getBundleTemplates(bundleId: string): Promise<string[]> {
+  return invokeApi<string[]>("get_bundle_templates_cmd", { bundleId });
+}
+
+export async function deleteBundle(bundleId: string): Promise<void> {
+  return invokeApi<void>("delete_bundle_cmd", { bundleId });
+}
+
+export async function addTemplateToBundle(
+  bundleId: string,
+  templateId: string
+): Promise<void> {
+  return invokeApi<void>("add_template_to_bundle_cmd", { bundleId, templateId });
+}
+
+export async function removeTemplateFromBundle(
+  bundleId: string,
+  templateId: string
+): Promise<void> {
+  return invokeApi<void>("remove_template_from_bundle_cmd", { bundleId, templateId });
+}

@@ -26,6 +26,14 @@ pub fn run() {
             commands::fill_template,
             commands::delete_template,
             commands::export_to_pdf,
+            commands::backup_database,
+            commands::restore_database,
+            commands::create_bundle_cmd,
+            commands::list_bundles_cmd,
+            commands::get_bundle_templates_cmd,
+            commands::delete_bundle_cmd,
+            commands::add_template_to_bundle_cmd,
+            commands::remove_template_from_bundle_cmd,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

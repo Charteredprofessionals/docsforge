@@ -4,7 +4,7 @@
 
 use rusqlite::{Connection, Result, Transaction};
 
-pub const CURRENT_SCHEMA_VERSION: i32 = 2;
+pub const CURRENT_SCHEMA_VERSION: i32 = 3;
 
 /// Applies all pending schema migrations inside a transaction.
 pub fn apply_migrations(conn: &mut Connection) -> Result<()> {
@@ -39,6 +39,19 @@ pub fn apply_migrations(conn: &mut Connection) -> Result<()> {
         let tx = conn.transaction()?;
         migration_v2(&tx)?;
         tx.pragma_update(None, "user_version", 2)?;
+        tx.commit()?;
+    }
+
+    let has_v3_bundles: bool = conn
+        .prepare("PRAGMA table_info(bundles)")?
+        .query_map([], |row| row.get::<_, String>(1))?
+        .filter_map(|r| r.ok())
+        .any(|col| col == "id");
+
+    if current_version < 3 || !has_v3_bundles {
+        let tx = conn.transaction()?;
+        migration_v3(&tx)?;
+        tx.pragma_update(None, "user_version", 3)?;
         tx.commit()?;
     }
 
@@ -246,5 +259,29 @@ fn migration_v2(tx: &Transaction) -> Result<()> {
         ",
     )?;
 
+    Ok(())
+}
+
+/// Migration v3 — Template Bundles (group templates for batch operations).
+/// Adopted from the `templatebuilder` sibling project (high-impact feature).
+fn migration_v3(tx: &Transaction) -> Result<()> {
+    tx.execute_batch(
+        "
+        CREATE TABLE IF NOT EXISTS bundles (
+            id          TEXT PRIMARY KEY,
+            name        TEXT NOT NULL,
+            description TEXT NOT NULL DEFAULT '',
+            created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS bundle_templates (
+            id          TEXT PRIMARY KEY,
+            bundle_id   TEXT NOT NULL REFERENCES bundles(id) ON DELETE CASCADE,
+            template_id TEXT NOT NULL,
+            position    INTEGER NOT NULL DEFAULT 0,
+            UNIQUE(bundle_id, template_id)
+        );
+        ",
+    )?;
     Ok(())
 }

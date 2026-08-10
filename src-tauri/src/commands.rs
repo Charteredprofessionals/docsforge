@@ -13,6 +13,11 @@ use crate::AppState;
 use crate::core::docx_engine::{fill_document, tag_document, TemplateFieldSpec};
 use crate::core::governance::record_generation;
 use crate::core::template_store;
+use crate::core::bundles::{
+    add_template_to_bundle, create_bundle, delete_bundle, get_bundle_templates, list_bundles,
+    remove_template_from_bundle,
+};
+use crate::schema::{get_db_path, init_db};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TemplateMeta {
@@ -186,8 +191,9 @@ pub struct ExportPdfRequest {
     pub output_filename: String,
 }
 
-/// PDF export using LibreOffice headless.
-/// Returns a clear error if LibreOffice is not installed, and enforces a timeout.
+/// PDF export. Prefers high-fidelity LibreOffice headless conversion; if LibreOffice
+/// is unavailable, transparently falls back to the native Rust converter
+/// (`export_pdf_from_docx`) so PDF export works with zero external dependencies.
 #[tauri::command]
 pub fn export_to_pdf(request: ExportPdfRequest) -> Result<String, String> {
     let bytes = general_purpose::STANDARD
@@ -198,57 +204,82 @@ pub fn export_to_pdf(request: ExportPdfRequest) -> Result<String, String> {
     std::fs::create_dir_all(&temp_dir).map_err(|e| format!("Create temp dir: {e}"))?;
 
     let docx_path = temp_dir.join(format!("{}.docx", Uuid::new_v4()));
-
     std::fs::write(&docx_path, &bytes).map_err(|e| format!("Write temp docx: {e}"))?;
 
-    let soffice = find_soffice();
-    if soffice.is_none() {
-        let _ = std::fs::remove_file(&docx_path);
-        return Err(
-            "LibreOffice not found. Please install LibreOffice to enable PDF export.".to_string(),
-        );
-    }
-    let soffice = soffice.unwrap();
-
-    let output = run_with_timeout(
-        &soffice,
-        &[
-            "--headless",
-            "--convert-to",
-            "pdf",
-            "--outdir",
-            temp_dir.to_str().unwrap_or("."),
-            docx_path.to_str().unwrap_or(""),
-        ],
-        Duration::from_secs(120),
-    );
-
-    let result = match output {
-        Ok(status) if status.success() => {
-            let generated_pdf = temp_dir.join(
-                docx_path
-                    .file_stem()
-                    .unwrap_or_default()
-                    .to_string_lossy()
-                    .to_string()
-                    + ".pdf",
+    let result = match find_soffice() {
+        Some(soffice) => {
+            let output = run_with_timeout(
+                &soffice,
+                &[
+                    "--headless",
+                    "--convert-to",
+                    "pdf",
+                    "--outdir",
+                    temp_dir.to_str().unwrap_or("."),
+                    docx_path.to_str().unwrap_or(""),
+                ],
+                Duration::from_secs(120),
             );
-            let pdf_bytes =
-                std::fs::read(&generated_pdf).map_err(|e| format!("Read generated PDF: {e}"))?;
-            let pdf_b64 = general_purpose::STANDARD.encode(&pdf_bytes);
-            let _ = std::fs::remove_file(&generated_pdf);
-            Ok(serde_json::json!({
-                "pdf_base64": pdf_b64,
-                "filename": format!("{}.pdf", request.output_filename),
-            })
-            .to_string())
+            match output {
+                Ok(status) if status.success() => {
+                    let generated_pdf = temp_dir.join(
+                        docx_path
+                            .file_stem()
+                            .unwrap_or_default()
+                            .to_string_lossy()
+                            .to_string()
+                            + ".pdf",
+                    );
+                    match std::fs::read(&generated_pdf) {
+                        Ok(pdf_bytes) => {
+                            let pdf_b64 = general_purpose::STANDARD.encode(&pdf_bytes);
+                            let _ = std::fs::remove_file(&generated_pdf);
+                            Ok(serde_json::json!({
+                                "pdf_base64": pdf_b64,
+                                "filename": format!("{}.pdf", request.output_filename),
+                                "engine": "libreoffice",
+                            })
+                            .to_string())
+                        }
+                        Err(e) => native_pdf_fallback(&bytes, &request.output_filename, &e.to_string()),
+                    }
+                }
+                _ => native_pdf_fallback(&bytes, &request.output_filename, "LibreOffice conversion failed"),
+            }
         }
-        Ok(status) => Err(format!("PDF conversion failed (exit {:?})", status.code())),
-        Err(e) => Err(e),
+        None => native_pdf_fallback(
+            &bytes,
+            &request.output_filename,
+            "LibreOffice not found",
+        ),
     };
 
     let _ = std::fs::remove_file(&docx_path);
     result
+}
+
+/// Converts the DOCX bytes to PDF natively (no LibreOffice). Returns a clear error
+/// only if the native engine itself fails.
+fn native_pdf_fallback(
+    bytes: &[u8],
+    output_filename: &str,
+    reason: &str,
+) -> Result<String, String> {
+    match crate::core::export::export_pdf_from_docx(bytes) {
+        Ok(pdf_bytes) => {
+            let pdf_b64 = general_purpose::STANDARD.encode(&pdf_bytes);
+            Ok(serde_json::json!({
+                "pdf_base64": pdf_b64,
+                "filename": format!("{}.pdf", output_filename),
+                "engine": "native",
+                "note": format!("Used native Rust PDF engine ({reason}). Layout is plain text.")
+            })
+            .to_string())
+        }
+        Err(e) => Err(format!(
+            "LibreOffice unavailable ({reason}) and native PDF engine failed: {e}"
+        )),
+    }
 }
 
 /// Prefer a known absolute LibreOffice path to avoid PATH-based executable hijacking.
@@ -275,6 +306,99 @@ fn find_soffice() -> Option<String> {
         }
     }
     None
+}
+
+// ── Database backup / restore ────────────────────────────────────────────────
+
+/// Copies the active SQLite database file to a user-chosen backup location.
+#[tauri::command]
+pub fn backup_database(target_path: String) -> Result<(), String> {
+    let db_path = get_db_path();
+    if !db_path.exists() {
+        return Err("Database file not found".to_string());
+    }
+    std::fs::copy(&db_path, &target_path).map_err(|e| format!("Backup failed: {e}"))?;
+    Ok(())
+}
+
+/// Replaces the active database with a previously created backup, then re-opens it.
+#[tauri::command]
+pub fn restore_database(state: State<AppState>, source_path: String) -> Result<(), String> {
+    let db_path = get_db_path();
+    if !std::path::Path::new(&source_path).exists() {
+        return Err("Source backup file not found".to_string());
+    }
+    std::fs::copy(&source_path, &db_path).map_err(|e| format!("Restore failed: {e}"))?;
+    let new_conn = init_db().map_err(|e| format!("Re-init failed: {e}"))?;
+    *state.db.lock().map_err(|e| e.to_string())? = new_conn;
+    Ok(())
+}
+
+// ── Template Bundles ──────────────────────────────────────────────────────────
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateBundleRequest {
+    pub name: String,
+    pub description: Option<String>,
+    pub template_ids: Vec<String>,
+}
+
+#[tauri::command]
+pub fn create_bundle_cmd(
+    state: State<AppState>,
+    request: CreateBundleRequest,
+) -> Result<String, String> {
+    if request.name.trim().is_empty() {
+        return Err("Bundle name cannot be empty".to_string());
+    }
+    if request.template_ids.is_empty() {
+        return Err("Bundle must contain at least one template".to_string());
+    }
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    create_bundle(&db, &request.name, request.description.as_deref(), &request.template_ids)
+        .map_err(|e| format!("Create bundle failed: {e}"))
+}
+
+#[tauri::command]
+pub fn list_bundles_cmd(state: State<AppState>) -> Result<String, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let bundles = list_bundles(&db).map_err(|e| format!("List bundles failed: {e}"))?;
+    serde_json::to_string(&bundles).map_err(|e| format!("Serialize: {e}"))
+}
+
+#[tauri::command]
+pub fn get_bundle_templates_cmd(state: State<AppState>, bundle_id: String) -> Result<String, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let ids = get_bundle_templates(&db, &bundle_id).map_err(|e| format!("Get bundle failed: {e}"))?;
+    serde_json::to_string(&ids).map_err(|e| format!("Serialize: {e}"))
+}
+
+#[tauri::command]
+pub fn delete_bundle_cmd(state: State<AppState>, bundle_id: String) -> Result<(), String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    delete_bundle(&db, &bundle_id).map_err(|e| format!("Delete bundle failed: {e}"))
+}
+
+#[tauri::command]
+pub fn add_template_to_bundle_cmd(
+    state: State<AppState>,
+    bundle_id: String,
+    template_id: String,
+) -> Result<(), String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    add_template_to_bundle(&db, &bundle_id, &template_id)
+        .map_err(|e| format!("Add to bundle failed: {e}"))
+}
+
+#[tauri::command]
+pub fn remove_template_from_bundle_cmd(
+    state: State<AppState>,
+    bundle_id: String,
+    template_id: String,
+) -> Result<(), String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    remove_template_from_bundle(&db, &bundle_id, &template_id)
+        .map_err(|e| format!("Remove from bundle failed: {e}"))
 }
 
 /// Runs a command and returns its exit status, or an error if it exceeds `timeout`.
