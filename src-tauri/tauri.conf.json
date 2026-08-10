@@ -3,6 +3,7 @@
   "productName": "DocForge",
   "version": "1.0.0",
   "identifier": "com.docforge.desktop",
+  "mainBinaryName": "docforge",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",

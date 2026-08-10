@@ -3,6 +3,24 @@ name = "docforge"
 version = "1.0.0"
 edition = "2021"
 
+# The desktop GUI app (src/main.rs) is the default binary built by `tauri build`.
+# The CLI and on-prem engines are opt-in targets gated behind features so the
+# Tauri bundler never mistakes them for the main application binary.
+[features]
+default = []
+cli = []
+onprem = []
+
+[[bin]]
+name = "docforge-cli"
+path = "src/tools/docforge_cli.rs"
+required-features = ["cli"]
+
+[[bin]]
+name = "docforge-onprem"
+path = "src/tools/docforge_onprem.rs"
+required-features = ["onprem"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 

@@ -25,7 +25,7 @@ def test_enterprise_outputs_exist():
 
     # Wave 9
     policy_rs = os.path.join(PROJECT_ROOT, "src-tauri", "src", "services", "policy.rs")
-    onprem_bin = os.path.join(PROJECT_ROOT, "src-tauri", "src", "bin", "docforge-onprem.rs")
+    onprem_bin = os.path.join(PROJECT_ROOT, "src-tauri", "src", "tools", "docforge_onprem.rs")
     assert os.path.exists(policy_rs)
     assert os.path.exists(onprem_bin)
 

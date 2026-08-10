@@ -26,14 +26,14 @@ def test_wave6_outputs_exist():
     assert os.path.exists(consent_dialog_tsx)
 
     # TASK-024
-    cli_bin = os.path.join(PROJECT_ROOT, "src-tauri", "src", "bin", "docforge-cli.rs")
+    cli_bin = os.path.join(PROJECT_ROOT, "src-tauri", "src", "tools", "docforge_cli.rs")
     if not os.path.exists(cli_bin):
         cli_bin = os.path.join(PROJECT_ROOT, "src-tauri", "src", "bin", "docforge.rs")
     assert os.path.exists(cli_bin)
 
 
 def test_cli_binary_source():
-    cli_bin = os.path.join(PROJECT_ROOT, "src-tauri", "src", "bin", "docforge-cli.rs")
+    cli_bin = os.path.join(PROJECT_ROOT, "src-tauri", "src", "tools", "docforge_cli.rs")
     if not os.path.exists(cli_bin):
         cli_bin = os.path.join(PROJECT_ROOT, "src-tauri", "src", "bin", "docforge.rs")
     with open(cli_bin, "r", encoding="utf-8") as f:
