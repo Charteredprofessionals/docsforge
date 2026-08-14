@@ -10,7 +10,7 @@ use crate::core::docx_engine::TemplateFieldSpec;
 use crate::core::error::DocForgeError;
 use crate::core::template::{TemplateRecord, TemplateStatus};
 use crate::core::template_store::{atomic_write, compute_sha256, get_templates_dir, load_template_meta};
-use crate::infra::crypto::encrypt_at_rest;
+use crate::infra::crypto::{decrypt_at_rest, encrypt_at_rest};
 
 /// Represents a version snapshot of a template.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -133,9 +133,13 @@ pub fn rollback_template_version(
             ))
         })?;
 
-    let bytes = fs::read(&target_storage_path).map_err(|e| {
+    let encrypted = fs::read(&target_storage_path).map_err(|e| {
         DocForgeError::StorageIo(format!("Read target version DOCX file: {e}"))
     })?;
+    // Version files are stored encrypted; decrypt back to raw DOCX bytes before
+    // re-versioning so create_template_version does not double-encrypt.
+    let bytes = decrypt_at_rest(&encrypted)
+        .map_err(|e| DocForgeError::StorageIo(format!("Decrypt target version DOCX: {e}")))?;
 
     let fields: Vec<TemplateFieldSpec> =
         serde_json::from_str(&fields_json).unwrap_or_default();

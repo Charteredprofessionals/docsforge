@@ -52,4 +52,44 @@ export interface Bundle {
   created_at: string;
 }
 
+export type BugSeverity = "critical" | "high" | "medium" | "low";
+export type BugStatus = "open" | "in_progress" | "resolved" | "wont_fix";
+
+export interface BugAttachment {
+  id: string;
+  bugId: string;
+  filename: string;
+  mimeType: string;
+  createdAt: string;
+}
+
+export interface BugEntry {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  errorType: string;
+  severity: BugSeverity;
+  status: BugStatus;
+  context: string;
+  message: string;
+  stackTrace: string;
+  source: "auto" | "manual";
+  category: string;
+  keywords: string;
+  resolvedBy?: string | null;
+  resolvedAt?: string | null;
+  attachments: BugAttachment[];
+}
+
+export interface BugFilter {
+  dateFrom?: string;
+  dateTo?: string;
+  severity?: BugSeverity | "";
+  status?: BugStatus | "";
+  keyword?: string;
+  sortBy?: "createdAt" | "severity" | "status" | "errorType";
+  sortDir?: "asc" | "desc";
+  limit?: number;
+}
+
 export type AppView = "list" | "create" | "fill" | "admin" | "bundles";

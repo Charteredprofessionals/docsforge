@@ -7,66 +7,36 @@
     "services": "src-tauri/src/services/",
     "commands": "src-tauri/src/commands.rs",
     "shell": "src/components/ and src/lib/",
-    "bins": "src-tauri/src/bin/"
+    "bins": "src-tauri/src/bin/",
+    "bundle": "src-tauri/src/core/bundle/",
+    "field_mapping": "src-tauri/src/core/field_mapping/",
+    "matter": "src-tauri/src/core/matter/",
+    "rules": "src-tauri/src/core/rules/",
+    "generation_run": "src-tauri/src/core/generation_run/"
   },
   "modules": [
     {
-      "id": "TASK-001",
-      "title": "docforge-core crate scaffolding + DocForgeError contract",
-      "description": "Create the core crate boundary (core/mod.rs) and the single typed DocForgeError enum that serializes to the stable JSON contract (code, message, detail) shared by GUI, CLI, and REST. Fail-fast, precise variants: invalid_docx, zip_bomb, unclosed_tag, unknown_tag, invalid_field_value, storage_missing, storage_io, forbidden, not_published, license_*, internal.",
+      "id": "TASK-101",
+      "title": "Schema migration v4 -> v5: bundle/matter/generation tables",
+      "description": "Extend src-tauri/src/migrations.rs with the transactional v4 -> v5 migration: create bundles, bundle_versions, bundle_documents, field_groups, fields, field_mappings, rules, matters, matter_data, generation_runs, generated_documents tables plus indexes (generation_runs(matter_id, created_at), generated_documents(run_id)); PRAGMA user_version = 5. Existing v1 tables stay untouched; v1 template bundles are promoted to bundles rows. Verify foreign_key_check + count parity.",
+      "module": "governance",
+      "wave": "B1",
       "depends_on": [],
-      "inputs": [],
-      "outputs": [
-        {
-          "path": "src-tauri/src/core/mod.rs"
-        },
-        {
-          "path": "src-tauri/src/core/error.rs"
-        }
-      ],
+      "verification": "pytest tests/test_schema_v5_migration.py (integration_test); PRAGMA foreign_key_check clean",
       "requirements": [
-        "REQ-003",
-        "REQ-001"
+        "REQ-023",
+        "REQ-024",
+        "REQ-033"
+      ],
+      "acceptance_criteria": [
+        "AC-023",
+        "AC-024",
+        "AC-033"
       ],
       "acceptance_tests": [
-        "AC-003"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-002",
-      "title": "docx_engine: validate_docx (magic bytes, zip structure, bomb limits)",
-      "description": "Implement validate_docx in core/docx_engine.rs: reject non-docx with precise errors (magic bytes PK\\x03\\x04), verify OPC zip structure, and enforce entry-count + compression-ratio caps (zip-bomb guard) plus XML entity/namespace limits per REQ-018. No regex on document.xml.",
-      "depends_on": [
-        "TASK-001"
-      ],
-      "inputs": [
-        "src-tauri/src/core/error.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/core/docx_engine.rs"
-        }
-      ],
-      "requirements": [
-        "REQ-018"
-      ],
-      "acceptance_tests": [
-        "AC-018"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-006",
-      "title": "Data Model v2: schema.rs rewrite + versioned migrations",
-      "description": "Replace the legacy BLOB schema in src-tauri/src/schema.rs with Data Model v2: 13 tables (orgs, users, templates, template_versions, generation_log, licenses, license_seats, devices, license_files, telemetry_consent, policy_config, webhook_subscriptions, schema_version), all indexes, status-transition trigger, append-only audit triggers, and the view_audit_export projection. Versioned migration ledger in src-tauri/src/migrations.rs; PRAGMA user_version = 2.",
-      "depends_on": [
-        "TASK-001"
-      ],
-      "inputs": [
-        "src-tauri/src/core/error.rs"
+        "AC-023",
+        "AC-024",
+        "AC-033"
       ],
       "outputs": [
         {
@@ -76,841 +46,617 @@
           "path": "src-tauri/src/migrations.rs"
         }
       ],
-      "requirements": [
-        "REQ-004",
-        "REQ-010",
-        "REQ-013"
-      ],
-      "acceptance_tests": [
-        "AC-004",
-        "AC-010",
-        "AC-013"
-      ],
-      "status": "verified",
-      "attempts": 0
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
     },
     {
-      "id": "TASK-008",
-      "title": "At-rest crypto port: DPAPI (Windows) + Keychain (macOS)",
-      "description": "Implement infra/crypto.rs: DPAPI-encrypt template/license files at rest on Windows (macOS Keychain path), keyed settings store with no secrets in config, and machine-id generation (DPAPI-protected) for audit and license binding. Zero-knowledge by construction: no document bytes in any payload.",
+      "id": "TASK-102",
+      "title": "bundle module: Bundle manifest struct + persistence",
+      "description": "Create src-tauri/src/core/bundle/ with the Bundle manifest (id, name, description, documents, fields, mappings, rules, output_config, version history per REQ-023) and create_bundle/get_bundle/list_bundles/update_bundle/delete_bundle (delete refused while published versions are referenced by runs). Persistence writes rows to the v5 bundles table.",
+      "module": "bundle",
+      "wave": "B1",
       "depends_on": [
-        "TASK-001"
+        "TASK-101"
       ],
-      "inputs": [
-        "src-tauri/src/core/error.rs"
+      "verification": "cargo test bundle::tests::test_bundle_manifest_roundtrip (unit_test)",
+      "requirements": [
+        "REQ-023"
+      ],
+      "acceptance_criteria": [
+        "AC-023"
+      ],
+      "acceptance_tests": [
+        "AC-023"
       ],
       "outputs": [
         {
-          "path": "src-tauri/src/infra/mod.rs"
+          "path": "src-tauri/src/core/bundle/mod.rs"
         },
         {
-          "path": "src-tauri/src/infra/crypto.rs"
+          "path": "src-tauri/src/core/bundle/manifest.rs"
         }
       ],
-      "requirements": [
-        "REQ-019"
-      ],
-      "acceptance_tests": [
-        "AC-019"
-      ],
-      "status": "verified",
-      "attempts": 0
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
     },
     {
-      "id": "TASK-003",
-      "title": "docx_engine: tag_document with cross-run XML replacement",
-      "description": "Implement tag_document: stream word/document.xml through quick-xml, merge <w:t> runs so a selection spanning multiple runs becomes a single {{tag}} placeholder carrying the first run's <w:rPr> formatting (REQ-002). Unified engine owns tagging - no JS generation (REQ-001).",
+      "id": "TASK-103",
+      "title": "bundle versioning: draft -> published, immutable published versions",
+      "description": "Implement create_draft_version/publish_version/list_versions/get_version per REQ-024. publish_version seals the snapshot into bundle_versions (status published, manifest_json captured); any later change creates a new version; editing a published version raises bundle_version_immutable. Matters and generation runs bind to the exact bundle_version.",
+      "module": "bundle",
+      "wave": "B1",
       "depends_on": [
-        "TASK-001",
-        "TASK-002"
+        "TASK-102"
       ],
-      "inputs": [
-        "src-tauri/src/core/error.rs",
-        "src-tauri/src/core/docx_engine.rs"
+      "verification": "cargo test bundle::tests::test_published_version_immutable (unit_test)",
+      "requirements": [
+        "REQ-024"
+      ],
+      "acceptance_criteria": [
+        "AC-024"
+      ],
+      "acceptance_tests": [
+        "AC-024"
       ],
       "outputs": [
         {
-          "path": "src-tauri/src/core/docx_engine.rs"
+          "path": "src-tauri/src/core/bundle/version.rs"
         }
       ],
-      "requirements": [
-        "REQ-001",
-        "REQ-002"
-      ],
-      "acceptance_tests": [
-        "AC-001",
-        "AC-002"
-      ],
-      "status": "verified",
-      "attempts": 0
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
     },
     {
-      "id": "TASK-007",
-      "title": "template_store: FS-backed save/load/list/delete/resolve",
-      "description": "Implement core/template_store.rs: save(meta, bytes) -> TemplateId, load(id, version), list, delete, resolve(storage_path) with path containment checks (REQ-018). Files under app-data templates/<id>/v<n>/template.docx; SQLite stores storage_path + metadata only (no BLOB, REQ-004); content_sha256 verified on every load.",
+      "id": "TASK-104",
+      "title": "bundle .dfpkg v2 import/export via export/dfpkg.rs seam",
+      "description": "Expand the v1 .dfpkg container (document.docx + fields.json + metadata.json) into the full Bundle package per REQ-025: documents/, fields.json, field_groups.json, field_mappings.json, rules.json, output_config.json, metadata.json, version. Reuse the existing core/export/dfpkg.rs seam; import validates magic bytes, zip structure, and schema conformance before any row is written. Fully offline.",
+      "module": "bundle",
+      "wave": "B1",
       "depends_on": [
-        "TASK-006"
+        "TASK-102",
+        "TASK-103"
       ],
-      "inputs": [
-        "src-tauri/src/schema.rs"
+      "verification": "cargo test export::dfpkg::tests::test_bundle_dfpkg_roundtrip (integration_test)",
+      "requirements": [
+        "REQ-025",
+        "REQ-007"
+      ],
+      "acceptance_criteria": [
+        "AC-025",
+        "AC-007"
+      ],
+      "acceptance_tests": [
+        "AC-025",
+        "AC-007"
       ],
       "outputs": [
         {
-          "path": "src-tauri/src/core/template_store.rs"
-        }
-      ],
-      "requirements": [
-        "REQ-004"
-      ],
-      "acceptance_tests": [
-        "AC-004"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-019",
-      "title": "governance core: RBAC, workflow, immutable audit, usage reports",
-      "description": "Implement core/governance.rs: authorize(user, role, action) RBAC matrix (viewer/filler/creator/approver/admin), transition_status enforcing draft->review->published->archived (published-only fillable by non-creators), record_generation as the sole append-only generation_log writer, and usage_report aggregating counts/duration only - never content.",
-      "depends_on": [
-        "TASK-006",
-        "TASK-001"
-      ],
-      "inputs": [
-        "src-tauri/src/schema.rs",
-        "src-tauri/src/core/error.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/core/governance.rs"
-        }
-      ],
-      "requirements": [
-        "REQ-011",
-        "REQ-012",
-        "REQ-013",
-        "REQ-014"
-      ],
-      "acceptance_tests": [
-        "AC-011",
-        "AC-012",
-        "AC-013"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-020",
-      "title": "licensing core: entitlement, offline activation, grace, revoke",
-      "description": "Implement core/licensing.rs: evaluate_entitlement(feature, context) gating Free/Pro/Business/Enterprise capabilities, activate(key|license_file, device) with Pro 2-device cap, Business per-seat pool, Enterprise signed offline files (no phone-home after activation), grace windows 30/60/90, and revoke(device). Payloads are activation facts only - zero document content (REQ-019).",
-      "depends_on": [
-        "TASK-006",
-        "TASK-008",
-        "TASK-001"
-      ],
-      "inputs": [
-        "src-tauri/src/schema.rs",
-        "src-tauri/src/infra/crypto.rs",
-        "src-tauri/src/core/error.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/core/licensing.rs"
-        }
-      ],
-      "requirements": [
-        "REQ-015"
-      ],
-      "acceptance_tests": [
-        "AC-015"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-004",
-      "title": "docx_engine: fill_document run-aware + unclosed-tag detection",
-      "description": "Implement fill_document: cross-run aware placeholder replacement with per-field type validation; any leftover {{ raises DocForgeError::UnclosedTag { tag_name, offset } } - never returns a partially-filled artifact (REQ-003). unknown_tag and invalid_field_value variants mapped per-field. No regex mutation of document.xml.",
-      "depends_on": [
-        "TASK-001",
-        "TASK-002",
-        "TASK-003"
-      ],
-      "inputs": [
-        "src-tauri/src/core/error.rs",
-        "src-tauri/src/core/docx_engine.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/core/docx_engine.rs"
-        }
-      ],
-      "requirements": [
-        "REQ-001",
-        "REQ-003"
-      ],
-      "acceptance_tests": [
-        "AC-001",
-        "AC-003"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-009",
-      "title": "Legacy BLOB -> FS migration + identity seed",
-      "description": "One-time transactional migration: backup/rename legacy tables, create v2 schema, seed implicit personal org + local admin user + free license (zero-friction consumer), migrate BLOB rows to templates/<id>/v1/template.docx (DPAPI-encrypted, content_sha256), migrate legacy generation_log rows, PRAGMA user_version = 2. Verify foreign_key_check + count parity.",
-      "depends_on": [
-        "TASK-006",
-        "TASK-007",
-        "TASK-008"
-      ],
-      "inputs": [
-        "src-tauri/src/schema.rs",
-        "src-tauri/src/core/template_store.rs",
-        "src-tauri/src/infra/crypto.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/migrations.rs"
-        }
-      ],
-      "requirements": [
-        "REQ-004",
-        "REQ-019"
-      ],
-      "acceptance_tests": [
-        "AC-004",
-        "AC-019"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-010",
-      "title": "Binary IPC bridge + typed TypeScript invoke layer",
-      "description": "Replace the Base64 bridge: raw-byte binary IPC for payloads >1MB (ADR-004), no Base64 in the hot path. Add typed src/lib/ipc.ts wrapping invoke with structured DocForgeError deserialization (code/detail -> UI mapping), and capability ACL entries per command in src-tauri/capabilities/default.json.",
-      "depends_on": [
-        "TASK-001",
-        "TASK-007"
-      ],
-      "inputs": [
-        "src-tauri/src/core/error.rs",
-        "src-tauri/src/core/template_store.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src/lib/ipc.ts"
-        },
-        {
-          "path": "src-tauri/capabilities/default.json"
-        }
-      ],
-      "requirements": [
-        "REQ-005"
-      ],
-      "acceptance_tests": [
-        "AC-005"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-012",
-      "title": "export module: DOCX identity, sanitized HTML preview, dfpkg bundle",
-      "description": "Implement core/export/: export_docx (byte-identical filled package), render_html_preview (mammoth output through DOMPurify -> SanitizedHtml, sanitization here not in UI), export_dfpkg/import_dfpkg (docx + fields + metadata + version zip). Never return unsanitized HTML.",
-      "depends_on": [
-        "TASK-003"
-      ],
-      "inputs": [
-        "src-tauri/src/core/docx_engine.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/core/export/mod.rs"
-        },
-        {
-          "path": "src-tauri/src/core/export/docx.rs"
-        },
-        {
-          "path": "src-tauri/src/core/export/html.rs"
+          "path": "src-tauri/src/core/bundle/dfpkg.rs"
         },
         {
           "path": "src-tauri/src/core/export/dfpkg.rs"
         }
       ],
-      "requirements": [
-        "REQ-007",
-        "REQ-017"
-      ],
-      "acceptance_tests": [
-        "AC-007",
-        "AC-017"
-      ],
-      "status": "verified",
-      "attempts": 0
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
     },
     {
-      "id": "TASK-016",
-      "title": "template_store: versioning + rollback",
-      "description": "Extend core/template_store.rs with create_version (UNIQUE (template_id, version), advances templates.version transactionally) and rollback(id, to_version) which restores a new head version from the target snapshot - history never mutated (REQ-010). Version DTOs mirrored into src/lib/types.ts.",
+      "id": "TASK-105",
+      "title": "bundle output configuration: naming rules, formats, folder policy",
+      "description": "Implement OutputConfig on the bundle: deterministic output naming rules (per REQ-035), default formats (docx/pdf), and output folder policy. set_output_config persists to bundles.output_config_json; output_name(template, run, format) consumes these rules at generation time.",
+      "module": "bundle",
+      "wave": "B1",
       "depends_on": [
-        "TASK-006",
-        "TASK-007"
+        "TASK-102"
       ],
-      "inputs": [
-        "src-tauri/src/schema.rs",
-        "src-tauri/src/core/template_store.rs"
+      "verification": "cargo test bundle::tests::test_output_config_naming_rules (unit_test)",
+      "requirements": [
+        "REQ-023",
+        "REQ-035"
+      ],
+      "acceptance_criteria": [
+        "AC-023",
+        "AC-035"
+      ],
+      "acceptance_tests": [
+        "AC-023",
+        "AC-035"
       ],
       "outputs": [
         {
-          "path": "src-tauri/src/core/template_store.rs"
-        },
-        {
-          "path": "src/lib/types.ts"
+          "path": "src-tauri/src/core/bundle/output_config.rs"
         }
       ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-106",
+      "title": "field_mapping: canonical field schema (13 types + attributes) + per-version registry",
+      "description": "Create src-tauri/src/core/field_mapping/ with the canonical Field/FieldGroup schema per REQ-026: 13 types (text, multiline_text, number, currency, percentage, date, datetime, boolean, email, phone, url, select, multiselect) and attributes (id, label, description, type, required, default, validation, group, options, format). Schema-time validation (validate_field_schema) and the canonical field registry bound to a bundle_version_id: create_field/update_field/list_fields/remove_field.",
+      "module": "field_mapping",
+      "wave": "F1",
+      "depends_on": [
+        "TASK-102"
+      ],
+      "verification": "cargo test field_mapping::tests::test_all_field_types_validate (unit_test)",
       "requirements": [
+        "REQ-026"
+      ],
+      "acceptance_criteria": [
+        "AC-026"
+      ],
+      "acceptance_tests": [
+        "AC-026"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/core/field_mapping/mod.rs"
+        },
+        {
+          "path": "src-tauri/src/core/field_mapping/schema.rs"
+        },
+        {
+          "path": "src-tauri/src/core/field_mapping/registry.rs"
+        }
+      ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-107",
+      "title": "field groups: shared vs document-specific scope",
+      "description": "Implement field groups per REQ-027: create_field_group/list_field_groups with scope 'shared' or 'document_specific' and sort_order persisted in field_groups. Group membership is referenced from fields.group_id; the grouped matter form and UI separation consume this ordering.",
+      "module": "field_mapping",
+      "wave": "F1",
+      "depends_on": [
+        "TASK-106"
+      ],
+      "verification": "cargo test field_mapping::tests::test_field_groups_scopes (unit_test)",
+      "requirements": [
+        "REQ-027"
+      ],
+      "acceptance_criteria": [
+        "AC-027"
+      ],
+      "acceptance_tests": [
+        "AC-027"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/core/field_mapping/groups.rs"
+        }
+      ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-108",
+      "title": "explicit deterministic mapping layer: set_mapping/list_mappings/resolve_value",
+      "description": "Implement the explicit deterministic mapping layer per REQ-028 (ADR-011): set_mapping(bundle_version_id, template_id, placeholder, field_id) with duplicate_mapping and unknown_placeholder guards, list_mappings, and resolve_value(document, placeholder, field, matter_data) returning a structured error on unknown/mismatched mapping - never a silent blank. Mappings are data, never scattered string replacement.",
+      "module": "field_mapping",
+      "wave": "F1",
+      "depends_on": [
+        "TASK-106"
+      ],
+      "verification": "cargo test field_mapping::tests::test_four_placeholders_one_field (unit_test)",
+      "requirements": [
+        "REQ-028"
+      ],
+      "acceptance_criteria": [
+        "AC-028"
+      ],
+      "acceptance_tests": [
+        "AC-028"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/core/field_mapping/mapping.rs"
+        }
+      ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-109",
+      "title": "placeholder extraction helpers: scan_placeholders + list_unmapped_placeholders",
+      "description": "Add docx_engine::scan_placeholders(docx) -> Vec<PlaceholderOccurrence> returning every {{...}} literal with offset and document identity, and field_mapping::list_unmapped_placeholders(bundle_version_id) diffing scanned placeholders against field_mappings. Consumed by the bundle health check (REQ-038) and bundle validation.",
+      "module": "field_mapping",
+      "wave": "F1",
+      "depends_on": [
+        "TASK-108"
+      ],
+      "verification": "cargo test field_mapping::tests::test_unmapped_placeholder_exact_doc_field (fixture_test)",
+      "requirements": [
+        "REQ-028",
+        "REQ-038"
+      ],
+      "acceptance_criteria": [
+        "AC-028",
+        "AC-038"
+      ],
+      "acceptance_tests": [
+        "AC-028",
+        "AC-038"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/core/docx_engine.rs"
+        },
+        {
+          "path": "src-tauri/src/core/field_mapping/placeholders.rs"
+        }
+      ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-110",
+      "title": "matter: create bound to exact bundle_version + CRUD",
+      "description": "Create src-tauri/src/core/matter/ with create_matter(bundle_id, bundle_version_id, name) storing the immutable binding per REQ-029 (bundle_not_published raised against draft versions), get_matter/list_matters/delete_matter (delete refused while generation runs exist). A matter is always an instance of exactly one published bundle version.",
+      "module": "matter",
+      "wave": "M1",
+      "depends_on": [
+        "TASK-103",
+        "TASK-106"
+      ],
+      "verification": "cargo test matter::tests::test_matter_binds_exact_bundle_version (unit_test)",
+      "requirements": [
+        "REQ-029"
+      ],
+      "acceptance_criteria": [
+        "AC-029"
+      ],
+      "acceptance_tests": [
+        "AC-029"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/core/matter/mod.rs"
+        },
+        {
+          "path": "src-tauri/src/core/matter/matter.rs"
+        }
+      ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-111",
+      "title": "matter data: single source entry CRUD + input_hash",
+      "description": "Implement set_matter_data/get_matter_data per REQ-030: canonical field values entered once and stored separately from the bundle definition in matter_data.values_json; recompute input_hash (sha256 of canonicalized values) on every write so one data source feeds every document in the bundle.",
+      "module": "matter",
+      "wave": "M1",
+      "depends_on": [
+        "TASK-110"
+      ],
+      "verification": "cargo test matter::tests::test_single_data_source_many_documents (unit_test)",
+      "requirements": [
+        "REQ-030"
+      ],
+      "acceptance_criteria": [
+        "AC-030"
+      ],
+      "acceptance_tests": [
+        "AC-030"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/core/matter/data.rs"
+        }
+      ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-112",
+      "title": "grouped matter form assembly: matter_form_schema",
+      "description": "Implement matter_form_schema(matter_id) returning the GroupedFormSchema per REQ-031: shared fields first (fan out to every document), then document-specific groups per REQ-027, each with label, type, required, options, format. The form renderer consumes this data; no form semantics live in the frontend.",
+      "module": "matter",
+      "wave": "M1",
+      "depends_on": [
+        "TASK-107",
+        "TASK-111"
+      ],
+      "verification": "cargo test matter::tests::test_grouped_form_schema_shared_first (unit_test)",
+      "requirements": [
+        "REQ-031"
+      ],
+      "acceptance_criteria": [
+        "AC-031"
+      ],
+      "acceptance_tests": [
+        "AC-031"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/core/matter/form.rs"
+        }
+      ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-113",
+      "title": "three-level validation: field + matter + bundle",
+      "description": "Implement validate_matter and wire the three validation levels per REQ-032: field-level (value matches type/format via field_mapping::validate_field_schema), matter-level (required shared fields present, rule-referenced fields well-typed), and bundle-level (unresolved placeholders, invalid mappings/rules, missing templates). Diagnostics identify exact document + field.",
+      "module": "matter",
+      "wave": "M1",
+      "depends_on": [
+        "TASK-106",
+        "TASK-108",
+        "TASK-111"
+      ],
+      "verification": "cargo test matter::tests::test_three_level_validation (unit_test)",
+      "requirements": [
+        "REQ-032"
+      ],
+      "acceptance_criteria": [
+        "AC-032"
+      ],
+      "acceptance_tests": [
+        "AC-032"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/core/matter/validation.rs"
+        }
+      ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-114",
+      "title": "rules DSL: safe deterministic parser + type-check + evaluator",
+      "description": "Create src-tauri/src/core/rules/ with a small hand-rolled deterministic expression parser/evaluator per REQ-037: field references, string/number/date/boolean literals, == != < <= > >= && || ! and parentheses. validate_rule_expression rejects function calls, loops, unknown fields, and arbitrary code at parse time; evaluation is side-effect-free and bounded.",
+      "module": "rules",
+      "wave": "G1",
+      "depends_on": [
+        "TASK-106",
+        "TASK-111"
+      ],
+      "verification": "cargo test rules::tests::test_dsl_rejects_function_calls (unit_test)",
+      "requirements": [
+        "REQ-037"
+      ],
+      "acceptance_criteria": [
+        "AC-037"
+      ],
+      "acceptance_tests": [
+        "AC-037"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/core/rules/mod.rs"
+        },
+        {
+          "path": "src-tauri/src/core/rules/parser.rs"
+        }
+      ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-115",
+      "title": "conditional documents: add_rule/evaluate_rules/evaluate_preview",
+      "description": "Implement bundle-level conditional documents per REQ-036: add_rule/update_rule/remove_rule/list_rules against a bundle version, evaluate_rules(bundle_version, matter_data) returning per-document Include/Exclude { reason }, and evaluate_preview reporting the number of documents to generate plus each skipped document with its human reason (rule label/expression). The preview uses the same code path as the run.",
+      "module": "rules",
+      "wave": "G1",
+      "depends_on": [
+        "TASK-114",
+        "TASK-111"
+      ],
+      "verification": "cargo test rules::tests::test_conditional_doc_skipped_with_reason (unit_test)",
+      "requirements": [
+        "REQ-036"
+      ],
+      "acceptance_criteria": [
+        "AC-036"
+      ],
+      "acceptance_tests": [
+        "AC-036"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/core/rules/evaluate.rs"
+        }
+      ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-116",
+      "title": "generation_run: append-only run record + input snapshot + engine version",
+      "description": "Create src-tauri/src/core/generation_run/ with the GenerationRun record per REQ-033: id, matter_id, bundle_id, bundle_version, timestamp, input snapshot (input_hash), engine version, requested documents, output files, warnings, errors, status. create_run/get_run/list_runs persist to generation_runs (append-only); a rerun always creates a new record and never mutates historical ones (REQ-034).",
+      "module": "generation_run",
+      "wave": "G1",
+      "depends_on": [
+        "TASK-103",
+        "TASK-111"
+      ],
+      "verification": "cargo test generation_run::tests::test_run_captures_snapshot_append_only (unit_test)",
+      "requirements": [
+        "REQ-033"
+      ],
+      "acceptance_criteria": [
+        "AC-033"
+      ],
+      "acceptance_tests": [
+        "AC-033"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/core/generation_run/mod.rs"
+        },
+        {
+          "path": "src-tauri/src/core/generation_run/record.rs"
+        }
+      ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-117",
+      "title": "generate all/selected orchestration over docx_engine + output naming + history",
+      "description": "Implement execute_run orchestrating over the verified core per REQ-035: load bundle version + matter data + mappings, evaluate rules (included set), docx_engine::fill_document per included document, export to DOCX/PDF with output_name from OutputConfig (REQ-035), record generated_documents rows with content_sha256 (never mutated, REQ-034). Supports generate-all and generate-selected; generation history via list_runs. Runs on the GenerationRunService thread pool.",
+      "module": "generation_run",
+      "wave": "G1",
+      "depends_on": [
+        "TASK-104",
+        "TASK-105",
+        "TASK-115",
+        "TASK-116"
+      ],
+      "verification": "cargo test generation_run::tests::test_generate_selected_output_naming (integration_test); pytest tests/test_generation_contract.py",
+      "requirements": [
+        "REQ-034",
+        "REQ-035"
+      ],
+      "acceptance_criteria": [
+        "AC-034",
+        "AC-035"
+      ],
+      "acceptance_tests": [
+        "AC-034",
+        "AC-035"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/core/generation_run/execute.rs"
+        },
+        {
+          "path": "src-tauri/src/services/generation_run.rs"
+        }
+      ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-118",
+      "title": "v1 template flow regression: standalone list/create/fill still green",
+      "description": "Regression gate proving the v1 flows survive the schema v5 migration per REQ-004/REQ-010: standalone template create, list, fill, versioning/rollback, and the 50-fixture tag-fidelity gate still pass on the migrated database. Nothing in the v1 template path is rewritten or deleted.",
+      "module": "template_store",
+      "wave": "Q1",
+      "depends_on": [
+        "TASK-101"
+      ],
+      "verification": "pytest tests/test_template_flows.py (fixture_test); src-tauri/tests/fidelity_gate.rs re-run",
+      "requirements": [
+        "REQ-004",
         "REQ-010"
       ],
-      "acceptance_tests": [
+      "acceptance_criteria": [
+        "AC-004",
         "AC-010"
       ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-005",
-      "title": "50-fixture DOCX corpus + tag-fidelity gate harness",
-      "description": "Build the 50-fixture corpus (tables, headers/footers, multi-run spans, RTL, tracked changes) under src-tauri/tests/fixtures/ with a manifest, plus the fidelity gate runner asserting 100% tag/fill fidelity (REQ-102) - run at this wave and re-run in the final verification wave and every CI gate.",
-      "depends_on": [
-        "TASK-003",
-        "TASK-004"
-      ],
-      "inputs": [
-        "src-tauri/src/core/docx_engine.rs"
+      "acceptance_tests": [
+        "AC-004",
+        "AC-010"
       ],
       "outputs": [
         {
-          "path": "src-tauri/tests/fixtures/manifest.json"
-        },
-        {
-          "path": "src-tauri/tests/fidelity_gate.rs"
+          "path": "src-tauri/tests/regression_v2.rs"
         }
       ],
+      "status": "completed",
+      "attempts": 0,
+      "tier": "standard"
+    },
+    {
+      "id": "TASK-119",
+      "title": "v2 UI: navigation + Bundles screen + Matter form + Generation history",
+      "description": "Add the v2 React screens per REQ-031/035/036: navigation (Dashboard / Bundles / Matters / Generated Documents), the Bundles screen (list, create, publish, .dfpkg import/export, health check), the Matter form (grouped shared vs document-specific sections), and the Generation history + preview (documents to generate and skipped-with-reason). The React layer issues requests and renders results only - no generation semantics (REQ-040).",
+      "module": "gui_shell",
+      "wave": "Q1",
+      "depends_on": [
+        "TASK-105",
+        "TASK-112",
+        "TASK-117"
+      ],
+      "verification": "vitest src/components (e2e_test); pytest tests/contract_v2.py contract tests",
       "requirements": [
-        "REQ-102"
+        "REQ-031",
+        "REQ-035",
+        "REQ-036"
+      ],
+      "acceptance_criteria": [
+        "AC-031",
+        "AC-035",
+        "AC-036"
       ],
       "acceptance_tests": [
-        "AC-002"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-011",
-      "title": "PDF engine: WebView2 headless print-to-PDF + guided LO fallback",
-      "description": "Implement core/export/pdf.rs with a PrintRenderer trait (L0 infra/print_bridge.rs): WebView2 headless print-to-PDF as the primary path - pixel-faithful on a clean Windows VM with no LibreOffice (AC-006), plus guided portable-LibreOffice fallback. PDF never required by any other module.",
-      "depends_on": [
-        "TASK-012",
-        "TASK-004"
-      ],
-      "inputs": [
-        "src-tauri/src/core/export/mod.rs",
-        "src-tauri/src/core/docx_engine.rs"
+        "AC-031",
+        "AC-035",
+        "AC-036"
       ],
       "outputs": [
         {
-          "path": "src-tauri/src/core/export/pdf.rs"
+          "path": "src/components/App.tsx"
         },
         {
-          "path": "src-tauri/src/infra/print_bridge.rs"
+          "path": "src/components/BundlesScreen.tsx"
+        },
+        {
+          "path": "src/components/MatterForm.tsx"
+        },
+        {
+          "path": "src/components/GenerationHistory.tsx"
         }
       ],
-      "requirements": [
-        "REQ-006"
-      ],
-      "acceptance_tests": [
-        "AC-006"
-      ],
-      "status": "verified",
-      "attempts": 0
+      "status": "pending",
+      "attempts": 0,
+      "tier": "standard"
     },
     {
-      "id": "TASK-013",
-      "title": "Strict CSP + sandboxed iframe preview + per-command ACL",
-      "description": "Replace \"csp\": null in tauri.conf.json with strict CSP (script-src 'self', no unsafe-inline/unsafe-eval, frame-src limited to the sandboxed preview iframe). Render SanitizedHtml only in the sandboxed iframe - never dangerouslySetInnerHTML with unsanitized content (ADR-006). Tighten capabilities/default.json to least-privilege per command.",
+      "id": "TASK-120",
+      "title": "integration gate: schema v5 checks + contract suite + full cargo test",
+      "description": "Final v2 integration gate: schema v5 applied with foreign_key_check clean, updated pytest contract tests (bundle/matter/generation contract coverage), full cargo test workspace green, and the AC-040 code review confirming zero docx manipulation under src/ (docx_engine remains the single source of truth per REQ-040). Writes the v2 verification report.",
+      "module": "generation_run",
+      "wave": "Q1",
       "depends_on": [
-        "TASK-010",
-        "TASK-012"
+        "TASK-117",
+        "TASK-118",
+        "TASK-119"
       ],
-      "inputs": [
-        "src/lib/ipc.ts",
-        "src-tauri/src/core/export/html.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/tauri.conf.json"
-        },
-        {
-          "path": "src/components/PreviewPane.tsx"
-        }
-      ],
+      "verification": "pytest --ignore=projects && cargo test --workspace (integration_test + code_review)",
       "requirements": [
-        "REQ-017",
-        "REQ-018"
-      ],
-      "acceptance_tests": [
-        "AC-017",
-        "AC-018"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-015",
-      "title": "Typed field schema: 5 field types + validation",
-      "description": "Define the typed field schema (text/date/dropdown/checkbox/signature) with per-type validation in core/fields.rs and mirrored DTOs in src/lib/types.ts. Validation runs in Rust (never trusted from renderer); errors surface as invalid_field_value { field_id, reason }.",
-      "depends_on": [
-        "TASK-001",
-        "TASK-010"
-      ],
-      "inputs": [
-        "src-tauri/src/core/error.rs",
-        "src/lib/ipc.ts"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/core/fields.rs"
-        },
-        {
-          "path": "src/lib/types.ts"
-        }
-      ],
-      "requirements": [
-        "REQ-008",
-        "REQ-009"
-      ],
-      "acceptance_tests": [
-        "AC-008",
-        "AC-009"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-014",
-      "title": "Services layer + command router + generation thread pool",
-      "description": "Build services/ (GenerationService, TemplateService) and the Tauri command surface in commands.rs registered from lib.rs: upload_docx, tag_template, save_template, list_templates, get_template, fill_template, export_document, render_preview. Every command returns Result<T, DocForgeError>; generation runs on a dedicated thread pool so the UI never blocks (REQ-101). Zero zip/XML logic in the shell (AC-001).",
-      "depends_on": [
-        "TASK-004",
-        "TASK-007",
-        "TASK-010",
-        "TASK-012"
-      ],
-      "inputs": [
-        "src-tauri/src/core/docx_engine.rs",
-        "src-tauri/src/core/template_store.rs",
-        "src/lib/ipc.ts",
-        "src-tauri/src/core/export/mod.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/services/mod.rs"
-        },
-        {
-          "path": "src-tauri/src/services/generation.rs"
-        },
-        {
-          "path": "src-tauri/src/services/template.rs"
-        },
-        {
-          "path": "src-tauri/src/commands.rs"
-        },
-        {
-          "path": "src-tauri/src/lib.rs"
-        }
-      ],
-      "requirements": [
-        "REQ-001",
-        "REQ-101"
-      ],
-      "acceptance_tests": [
-        "AC-001"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-017",
-      "title": "Template Creator screen (React 18)",
-      "description": "Build src/components/TemplateCreator.tsx: native picker upload (tauri-plugin-dialog, picker-confirmed paths only), extracted-text preview with highlightable spans, define all five field types, tag preview via render_preview, save as draft. Remove docxtemplater/pizzip from package.json (AC-001).",
-      "depends_on": [
-        "TASK-014",
-        "TASK-015",
-        "TASK-012"
-      ],
-      "inputs": [
-        "src-tauri/src/commands.rs",
-        "src/lib/types.ts",
-        "src-tauri/src/core/export/html.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src/components/TemplateCreator.tsx"
-        },
-        {
-          "path": "package.json"
-        }
-      ],
-      "requirements": [
-        "REQ-008"
-      ],
-      "acceptance_tests": [
-        "AC-008",
-        "AC-001"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-018",
-      "title": "Template Filler screen (React 18)",
-      "description": "Build src/components/TemplateFiller.tsx: fill all field types with per-field inline validation mapped from structured errors, live preview in the sandboxed iframe, and export to docx/pdf/dfpkg via the export pipeline. Only published templates fillable by non-creators (RBAC reflected, enforced in Rust).",
-      "depends_on": [
-        "TASK-014",
-        "TASK-015",
-        "TASK-012"
-      ],
-      "inputs": [
-        "src-tauri/src/commands.rs",
-        "src/lib/types.ts",
-        "src-tauri/src/core/export/html.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src/components/TemplateFiller.tsx"
-        }
-      ],
-      "requirements": [
-        "REQ-009"
-      ],
-      "acceptance_tests": [
-        "AC-009"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-021",
-      "title": "Governance services: audit export + admin backend commands",
-      "description": "Add GovernanceService with export_audit (view_audit_export projection, content-free) and usage_report commands; wire record_generation into every generation/export path from the services layer. Add list_users/set_user_role commands behind admin RBAC. Append-only invariant covered by unit tests.",
-      "depends_on": [
-        "TASK-019",
-        "TASK-014"
-      ],
-      "inputs": [
-        "src-tauri/src/core/governance.rs",
-        "src-tauri/src/commands.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/services/governance.rs"
-        },
-        {
-          "path": "src-tauri/src/commands.rs"
-        }
-      ],
-      "requirements": [
-        "REQ-013",
-        "REQ-014"
-      ],
-      "acceptance_tests": [
-        "AC-013",
-        "AC-014"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-022",
-      "title": "Consent dialog + TelemetryService (opt-in, aggregate-only)",
-      "description": "Build the consent UX (src/components/ConsentDialog.tsx) and services/telemetry.rs: opt-in flags on telemetry_consent (default deny), aggregate counts/timing only, redaction allowlist before egress, crash reporting consent-gated. Enterprise builds compile telemetry out entirely.",
-      "depends_on": [
-        "TASK-014",
-        "TASK-006"
-      ],
-      "inputs": [
-        "src-tauri/src/commands.rs",
-        "src-tauri/src/schema.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/services/telemetry.rs"
-        },
-        {
-          "path": "src/components/ConsentDialog.tsx"
-        }
-      ],
-      "requirements": [
-        "REQ-020"
-      ],
-      "acceptance_tests": [
-        "AC-020"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-024",
-      "title": "docforge CLI shell (headless, same core)",
-      "description": "Add src-tauri/src/bin/cli.rs: docforge generate/fill/template/audit/license/config subcommands reusing the exact core+services code. Exit codes 0/2/3/4/5, structured JSON errors to stderr for scripting. Proves the headless-core reuse (ADR-001) with the 50-fixture gate.",
-      "depends_on": [
-        "TASK-014",
-        "TASK-019",
-        "TASK-020",
-        "TASK-016"
-      ],
-      "inputs": [
-        "src-tauri/src/commands.rs",
-        "src-tauri/src/core/governance.rs",
-        "src-tauri/src/core/licensing.rs",
-        "src-tauri/src/core/template_store.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/bin/cli.rs"
-        }
-      ],
-      "requirements": [
-        "REQ-016"
-      ],
-      "acceptance_tests": [
-        "AC-016"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-023",
-      "title": "Admin console UI + licensing pane",
-      "description": "Build src/components/AdminConsole.tsx (users, seats, licenses, template library, audit viewer, aggregate usage reports) and src/components/LicensingPane.tsx (paywall surface, activate key/file, entitlement status). UI reflects roles; enforcement stays in Rust.",
-      "depends_on": [
-        "TASK-021",
-        "TASK-020"
-      ],
-      "inputs": [
-        "src-tauri/src/services/governance.rs",
-        "src-tauri/src/core/licensing.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src/components/AdminConsole.tsx"
-        },
-        {
-          "path": "src/components/LicensingPane.tsx"
-        }
-      ],
-      "requirements": [
-        "REQ-014",
-        "REQ-015"
-      ],
-      "acceptance_tests": [
-        "AC-014",
-        "AC-015"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-025",
-      "title": "Local REST bridge + generation webhooks (enterprise)",
-      "description": "Add src-tauri/src/bin/server.rs (docforge-server): bearer-token-authenticated local REST bridge on 127.0.0.1 (/v1/generate, /v1/templates, /v1/webhooks, /v1/audit, /v1/health) with RBAC passthrough, plus HMAC-signed webhook dispatch on generation events backed by webhook_subscriptions.",
-      "depends_on": [
-        "TASK-024",
-        "TASK-019",
-        "TASK-006"
-      ],
-      "inputs": [
-        "src-tauri/src/bin/cli.rs",
-        "src-tauri/src/core/governance.rs",
-        "src-tauri/src/schema.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/bin/server.rs"
-        }
-      ],
-      "requirements": [
-        "REQ-016"
-      ],
-      "acceptance_tests": [
-        "AC-016"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-029",
-      "title": "Compliance pack: DPA, SOC 2 scope, GDPR local-first whitepaper",
-      "description": "Produce the enterprise compliance deliverables: Data Processing Addendum, SOC 2 Type II scoping for licensing/billing/telemetry services, and GDPR local-first whitepaper. Verify zero-knowledge invariants (audit of telemetry payloads confirms no document content; license files carry activation facts only).",
-      "depends_on": [
-        "TASK-020",
-        "TASK-022"
-      ],
-      "inputs": [
-        "src-tauri/src/core/licensing.rs",
-        "src-tauri/src/services/telemetry.rs"
-      ],
-      "outputs": [
-        {
-          "path": "exports/compliance/dpa.md"
-        },
-        {
-          "path": "exports/compliance/soc2-scope.md"
-        },
-        {
-          "path": "exports/compliance/gdpr-whitepaper.md"
-        }
-      ],
-      "requirements": [
-        "REQ-105"
-      ],
-      "acceptance_tests": [
-        "AC-019",
-        "AC-020"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-026",
-      "title": "AuthService: local identity + SAML/SSO token binding",
-      "description": "Add services/auth.rs: local identity (zero-friction, no forced login) plus enterprise SAML assertion binding - verified external_sub mapped (JIT or admin-provisioned) to a local users row with an RBAC role. Enforcement point on every Tauri command, CLI subcommand, and REST route via governance::authorize.",
-      "depends_on": [
-        "TASK-019",
-        "TASK-025"
-      ],
-      "inputs": [
-        "src-tauri/src/core/governance.rs",
-        "src-tauri/src/bin/server.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/services/auth.rs"
-        }
-      ],
-      "requirements": [
-        "REQ-021",
-        "REQ-011"
-      ],
-      "acceptance_tests": [
-        "AC-021",
-        "AC-011"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-027",
-      "title": "Policy-file overlay + on-prem/air-gapped build",
-      "description": "Implement policy_config overlay (global/user/org/device scopes) applied at startup: telemetry forced-off, update channel, SSO IdP, license pool, allowed roles. On-prem/air-gapped MSI config with silent install and no internet dependency; enterprise build compiles telemetry/crash upload out.",
-      "depends_on": [
-        "TASK-026",
-        "TASK-022"
-      ],
-      "inputs": [
-        "src-tauri/src/services/auth.rs",
-        "src-tauri/src/services/telemetry.rs"
-      ],
-      "outputs": [
-        {
-          "path": "src-tauri/src/services/policy.rs"
-        },
-        {
-          "path": "src-tauri/tauri.conf.json"
-        }
-      ],
-      "requirements": [
-        "REQ-021",
-        "REQ-103"
-      ],
-      "acceptance_tests": [
-        "AC-021",
-        "AC-020"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-028",
-      "title": "Signed auto-update: staged rollout, rollback, channels, SBOM",
-      "description": "Configure signed auto-update with staged rollout (5%->25%->100%), one-click rollback to the prior signed build, stable/beta channels, and enterprise offline update payloads. Generate and attach SBOM (CycloneDX) to every release manifest. EV code signing + signature verification before execution.",
-      "depends_on": [
-        "TASK-023",
-        "TASK-027"
-      ],
-      "inputs": [
-        "src-tauri/src/services/policy.rs",
-        "src/components/AdminConsole.tsx"
-      ],
-      "outputs": [
-        {
-          "path": "exports/sbom.cdx.json"
-        },
-        {
-          "path": "src-tauri/tauri.conf.json"
-        }
-      ],
-      "requirements": [
-        "REQ-022"
-      ],
-      "acceptance_tests": [
-        "AC-022"
-      ],
-      "status": "verified",
-      "attempts": 0
-    },
-    {
-      "id": "TASK-030",
-      "title": "Release verification gate: corpus, perf, clean-VM, CI",
-      "description": "Final gate against the release definition: 100% tag fidelity on the 50-fixture corpus (re-run fidelity_gate), 10MB tag/fill < 2s with UI non-blocking benchmark, 15MB binary IPC transfer check, PDF export e2e on a clean Windows VM with no LibreOffice, unit+component+e2e coverage gate wired into CI before any release candidate.",
-      "depends_on": [
-        "TASK-005",
-        "TASK-011",
-        "TASK-018",
-        "TASK-023",
-        "TASK-024",
-        "TASK-025",
-        "TASK-028"
-      ],
-      "inputs": [
-        "src-tauri/tests/fidelity_gate.rs",
-        "src-tauri/src/core/export/pdf.rs",
-        "src-tauri/src/bin/cli.rs",
-        "src-tauri/src/bin/server.rs"
-      ],
-      "outputs": [
-        {
-          "path": "exports/verification_report.md"
-        },
-        {
-          "path": ".github/workflows/ci.yml"
-        }
-      ],
-      "requirements": [
-        "REQ-101",
-        "REQ-102",
-        "REQ-103",
+        "REQ-040",
         "REQ-104"
       ],
-      "acceptance_tests": [
-        "AC-005",
-        "AC-006",
-        "AC-002"
+      "acceptance_criteria": [
+        "AC-040"
       ],
-      "status": "verified",
-      "attempts": 0
+      "acceptance_tests": [
+        "AC-040"
+      ],
+      "outputs": [
+        {
+          "path": "tests/contract_v2.py"
+        },
+        {
+          "path": "exports/verification_report_v2.md"
+        }
+      ],
+      "status": "pending",
+      "attempts": 0,
+      "tier": "standard"
     }
   ]
 }

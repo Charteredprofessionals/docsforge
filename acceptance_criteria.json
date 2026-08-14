@@ -131,6 +131,114 @@
       "requirement": "REQ-022",
       "description": "Auto-update installs a signed release and can roll back; SBOM attached to the release manifest",
       "verification": "e2e_test + release_gate"
+    },
+    {
+      "id": "AC-023",
+      "requirement": "REQ-023",
+      "description": "A bundle manifest round-trips through .dfpkg import/export preserving identity, documents, field schema, mappings, rules, and output config",
+      "verification": "integration_test"
+    },
+    {
+      "id": "AC-024",
+      "requirement": "REQ-024",
+      "description": "Publishing a bundle version seals it; any edit creates a new version and generation references the exact version used",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-025",
+      "requirement": "REQ-025",
+      "description": "A bundle .dfpkg package imports and exports fully offline with no cloud dependency",
+      "verification": "integration_test"
+    },
+    {
+      "id": "AC-026",
+      "requirement": "REQ-026",
+      "description": "All 13 field types validate their values; every schema attribute (id, label, description, type, required, default, validation, group, options, format) is enforced",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-027",
+      "requirement": "REQ-027",
+      "description": "Shared and document-specific field groups persist their scope; the UI renders them as visually separate sections",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-028",
+      "requirement": "REQ-028",
+      "description": "Four different placeholders in different documents map to one canonical field and resolve to the same value",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-029",
+      "requirement": "REQ-029",
+      "description": "A matter stores the exact bundle_version_id it was created against; matter data is stored separately from the bundle definition",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-030",
+      "requirement": "REQ-030",
+      "description": "One matter data entry fills every document in the bundle with no per-document re-entry",
+      "verification": "integration_test"
+    },
+    {
+      "id": "AC-031",
+      "requirement": "REQ-031",
+      "description": "Matter creation flow completes end to end: select bundle, grouped form, validate, preview, generate",
+      "verification": "e2e_test"
+    },
+    {
+      "id": "AC-032",
+      "requirement": "REQ-032",
+      "description": "Validation runs at field, matter, and bundle levels with exact field/document identification in diagnostics",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-033",
+      "requirement": "REQ-033",
+      "description": "A generation run captures the input snapshot, exact bundle version, and engine version; run records are append-only",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-034",
+      "requirement": "REQ-034",
+      "description": "Historical generated documents are never mutated; any change produces a new run with new artifacts",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-035",
+      "requirement": "REQ-035",
+      "description": "Generate-all and generate-selected produce correctly named DOCX/PDF outputs; generation history lists every run",
+      "verification": "integration_test"
+    },
+    {
+      "id": "AC-036",
+      "requirement": "REQ-036",
+      "description": "A conditional document is skipped with its reason shown in the generation preview",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-037",
+      "requirement": "REQ-037",
+      "description": "Rule expressions parse and type-check; function calls, loops, and unknown fields are rejected before storage",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-038",
+      "requirement": "REQ-038",
+      "description": "The bundle health check flags an unmapped placeholder with the exact document and field",
+      "verification": "unit_test"
+    },
+    {
+      "id": "AC-039",
+      "requirement": "REQ-039",
+      "description": "No legal or company-secretarial vocabulary is hard-coded in the core domain modules",
+      "verification": "code_review"
+    },
+    {
+      "id": "AC-040",
+      "requirement": "REQ-040",
+      "description": "No docx manipulation exists anywhere under src/; all generation stays in the Rust docx_engine",
+      "verification": "code_review"
     }
   ]
 }

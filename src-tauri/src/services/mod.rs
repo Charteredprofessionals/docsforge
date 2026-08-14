@@ -1,5 +1,7 @@
 //! services/mod.rs — Service facade layer executing tasks off the UI thread.
 
+pub mod webhook;
+
 use std::collections::HashMap;
 use rusqlite::Connection;
 

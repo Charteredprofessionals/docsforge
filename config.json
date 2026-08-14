@@ -1,19 +1,19 @@
 {
   "projectId": "docsforge",
   "projectName": "DocForge",
-  "currentPhase": "RELEASED",
+  "currentPhase": "Architecting",
   "currentTask": null,
-  "status": "release_ready",
+  "status": "evolving",
   "attempt": 0,
   "startedAt": "2026-08-09T11:34:00Z",
-  "updatedAt": "2026-08-09T12:01:34Z",
+  "updatedAt": "2026-08-11T07:40:00Z",
   "lastSuccessfulCheckpoint": null,
   "requirementsVersion": 1,
   "architectureVersion": 1,
   "schemaVersion": 1,
-  "codeVersion": 0,
+  "codeVersion": 1,
   "qualityGateStatus": "passed",
-  "releaseVersion": "1.0.0",
+  "releaseVersion": "2.0.0",
   "approvalGates": {
     "architecture": false,
     "implementation": false,
@@ -49,11 +49,33 @@
     "governance",
     "licensing",
     "export",
-    "gui_shell"
+    "gui_shell",
+    "bundle",
+    "field_mapping",
+    "matter",
+    "rules",
+    "generation_run"
   ],
+  "evolution": {
+    "fromRelease": "1.0.0",
+    "targetRelease": "2.0.0",
+    "scope": "bundle_matter_generation",
+    "reApproval": true,
+    "runPhases": ["bundle", "fields_mappings", "matter", "generation"]
+  },
   "plan_refs": {
     "viability": "docs/business/viability-analysis.md",
     "monetization": "docs/business/monetization-strategy.md",
     "company_plan": "docs/company/product-plan.md"
-  }
+  },
+  "changeGovernance": {
+    "postReleaseRequired": true,
+    "policy": "docs/governance/POST_RELEASE_CHANGE_POLICY.md",
+    "crRegister": "docs/governance/CHANGELOG.md",
+    "verifyOnCi": true,
+    "tiers": ["standard", "normal", "emergency"],
+    "emergencyRetroSlaHours": 24,
+    "postReleaseTaskIds": ["TASK-031", "TASK-032"]
+  },
+  "postReleasePhase": "MAINTENANCE"
 }

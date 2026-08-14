@@ -39,6 +39,10 @@ pub enum DocForgeError {
     Forbidden(String),
     /// Template filling attempted on a draft/review version that is not published.
     NotPublished(String),
+    /// Bundle mutation targeted a published Bundle Version, which is immutable (REQ-024).
+    PublishedBundleImmutable(String),
+    /// A provided input argument failed validation (empty name, malformed value).
+    InvalidInput(String),
     /// License activation code or file signature is invalid.
     LicenseInvalid(String),
     /// License key or subscription period has expired.
@@ -62,6 +66,8 @@ impl DocForgeError {
             DocForgeError::StorageIo(_) => "storage_io",
             DocForgeError::Forbidden(_) => "forbidden",
             DocForgeError::NotPublished(_) => "not_published",
+            DocForgeError::PublishedBundleImmutable(_) => "published_bundle_immutable",
+            DocForgeError::InvalidInput(_) => "invalid_input",
             DocForgeError::LicenseInvalid(_) => "license_invalid",
             DocForgeError::LicenseExpired(_) => "license_expired",
             DocForgeError::LicenseLimitExceeded(_) => "license_limit_exceeded",
@@ -118,6 +124,10 @@ impl fmt::Display for DocForgeError {
             DocForgeError::NotPublished(id) => {
                 write!(f, "Template '{id}' is not in published state")
             }
+            DocForgeError::PublishedBundleImmutable(id) => {
+                write!(f, "Bundle version '{id}' is published and immutable (REQ-024); create a new version to change it")
+            }
+            DocForgeError::InvalidInput(msg) => write!(f, "Invalid input: {msg}"),
             DocForgeError::LicenseInvalid(msg) => write!(f, "Invalid license: {msg}"),
             DocForgeError::LicenseExpired(msg) => write!(f, "License expired: {msg}"),
             DocForgeError::LicenseLimitExceeded(msg) => write!(f, "License limit exceeded: {msg}"),

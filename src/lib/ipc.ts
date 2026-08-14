@@ -107,3 +107,130 @@ export async function removeTemplateFromBundle(
 ): Promise<void> {
   return invokeApi<void>("remove_template_from_bundle_cmd", { bundleId, templateId });
 }
+
+// ── Bug Book (Admin Console crash/error log) ──────────────────────────────────
+
+export interface LogBugInput {
+  errorType: string;
+  message: string;
+  stackTrace?: string;
+  severity?: "critical" | "high" | "medium" | "low";
+  context?: string;
+  category?: string;
+  source?: "auto" | "manual";
+}
+
+export async function logBug(input: LogBugInput): Promise<string> {
+  return invokeApi<string>("log_bug", {
+    errorType: input.errorType,
+    message: input.message,
+    stackTrace: input.stackTrace ?? "",
+    severity: input.severity,
+    context: input.context,
+    category: input.category,
+    source: input.source,
+  });
+}
+
+export interface CreateBugInput {
+  errorType: string;
+  message: string;
+  severity: "critical" | "high" | "medium" | "low";
+  status?: "open" | "in_progress" | "resolved" | "wont_fix";
+  context?: string;
+  stackTrace?: string;
+  category?: string;
+  keywords?: string;
+}
+
+export async function createBugEntry(input: CreateBugInput): Promise<string> {
+  return invokeApi<string>("create_bug_entry", {
+    errorType: input.errorType,
+    message: input.message,
+    severity: input.severity,
+    status: input.status,
+    context: input.context,
+    stackTrace: input.stackTrace,
+    category: input.category,
+    keywords: input.keywords,
+  });
+}
+
+export interface ListBugsInput {
+  dateFrom?: string;
+  dateTo?: string;
+  severity?: string;
+  status?: string;
+  keyword?: string;
+  sortBy?: string;
+  sortDir?: string;
+  limit?: number;
+}
+
+export async function listBugs(input: ListBugsInput): Promise<import("./types").BugEntry[]> {
+  return invokeApi<import("./types").BugEntry[]>("list_bugs", {
+    dateFrom: input.dateFrom,
+    dateTo: input.dateTo,
+    severity: input.severity,
+    status: input.status,
+    keyword: input.keyword,
+    sortBy: input.sortBy,
+    sortDir: input.sortDir,
+    limit: input.limit,
+  });
+}
+
+export async function getBug(bugId: string): Promise<import("./types").BugEntry> {
+  return invokeApi<import("./types").BugEntry>("get_bug", { bugId });
+}
+
+export async function updateBugStatus(
+  bugId: string,
+  status: "open" | "in_progress" | "resolved" | "wont_fix",
+  resolvedBy?: string
+): Promise<void> {
+  return invokeApi<void>("update_bug_status", { bugId, status, resolvedBy });
+}
+
+export interface AddBugAttachmentInput {
+  bugId: string;
+  filename: string;
+  mimeType: string;
+  dataB64: string;
+}
+
+export async function addBugAttachment(input: AddBugAttachmentInput): Promise<import("./types").BugAttachment> {
+  return invokeApi<import("./types").BugAttachment>("add_bug_attachment", {
+    bugId: input.bugId,
+    filename: input.filename,
+    mimeType: input.mimeType,
+    dataB64: input.dataB64,
+  });
+}
+
+export async function exportBugsCsv(input: ListBugsInput): Promise<string> {
+  const res = await invokeApi<{ csv: string }>("export_bugs_csv", {
+    dateFrom: input.dateFrom,
+    dateTo: input.dateTo,
+    severity: input.severity,
+    status: input.status,
+    keyword: input.keyword,
+    sortBy: input.sortBy,
+    sortDir: input.sortDir,
+    limit: input.limit,
+  });
+  return res.csv;
+}
+
+export async function exportBugsPdf(input: ListBugsInput): Promise<{ pdfBase64: string; filename: string }> {
+  return invokeApi<{ pdfBase64: string; filename: string }>("export_bugs_pdf", {
+    dateFrom: input.dateFrom,
+    dateTo: input.dateTo,
+    severity: input.severity,
+    status: input.status,
+    keyword: input.keyword,
+    sortBy: input.sortBy,
+    sortDir: input.sortDir,
+    limit: input.limit,
+  });
+}

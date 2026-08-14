@@ -75,3 +75,9 @@ pub fn import_dfpkg(bundle_bytes: &[u8]) -> Result<(TemplateRecord, Vec<u8>), Do
 
     Ok((record, docx_bytes))
 }
+
+// Bundle-level `.dfpkg` (TASK-104): keep the `export` module as the single
+// `.dfpkg` surface (architecture §6). The v1 single-template path above stays
+// the authoritative template package; the Bundle variant lives in
+// `core/bundle/dfpkg.rs` and is re-exported here.
+pub use crate::core::bundle::dfpkg::{export_bundle_dfpkg, import_bundle_dfpkg, ImportedBundle};

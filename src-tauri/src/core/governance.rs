@@ -25,7 +25,7 @@ pub enum UserRole {
 
 impl Default for UserRole {
     fn default() -> Self {
-        UserRole::Viewer
+        UserRole::Admin // Desktop app defaults to Admin for single-user mode
     }
 }
 
@@ -61,29 +61,138 @@ pub enum Action {
     ViewTemplate,
     FillTemplate,
     CreateTemplate,
+    DeleteTemplate,
     ApproveTemplate,
     ManageUsers,
     ExportAuditLog,
+    BackupDatabase,
+    RestoreDatabase,
+    DeleteDatabase,
+    CreateBundle,
+    DeleteBundle,
+    ManageBugs,
+    ExportBugs,
 }
 
 /// Evaluates if a role is authorized to perform an action.
 pub fn authorize(role: UserRole, action: Action) -> Result<(), DocForgeError> {
     let allowed = match action {
+        // ViewTemplate: Anyone can view (Viewer, Filler, Creator, Approver, Admin)
         Action::ViewTemplate => true,
+        // FillTemplate: Filler or above
         Action::FillTemplate => role >= UserRole::Filler,
+        // CreateTemplate: Creator or above
         Action::CreateTemplate => role >= UserRole::Creator,
+        // DeleteTemplate: Admin only
+        Action::DeleteTemplate => role == UserRole::Admin,
+        // ApproveTemplate: Approver or Admin
         Action::ApproveTemplate => role >= UserRole::Approver,
+        // ManageUsers: Admin only
         Action::ManageUsers => role == UserRole::Admin,
+        // ExportAuditLog: Approver or Admin
         Action::ExportAuditLog => role >= UserRole::Approver,
+        // BackupDatabase: Admin only
+        Action::BackupDatabase => role == UserRole::Admin,
+        // RestoreDatabase: Admin only
+        Action::RestoreDatabase => role == UserRole::Admin,
+        // DeleteDatabase: Admin only
+        Action::DeleteDatabase => role == UserRole::Admin,
+        // CreateBundle: Creator or above
+        Action::CreateBundle => role >= UserRole::Creator,
+        // DeleteBundle: Admin only
+        Action::DeleteBundle => role == UserRole::Admin,
+        // ManageBugs: Approver or above (view/modify bugs)
+        Action::ManageBugs => role >= UserRole::Approver,
+        // ExportBugs: Approver or above
+        Action::ExportBugs => role >= UserRole::Approver,
     };
 
     if allowed {
         Ok(())
     } else {
         Err(DocForgeError::Forbidden(format!(
-            "Role '{role}' is not authorized to perform action"
+            "Role '{role}' is not authorized to perform action '{action:?}'"
         )))
     }
+}
+
+/// Initialize the local user on first run (creates default Admin user for desktop).
+pub fn initialize_local_user(conn: &Connection) -> Result<(), DocForgeError> {
+    let count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM users WHERE org_id IS NULL", [], |r| r.get(0))
+        .unwrap_or(0);
+
+    if count == 0 {
+        let user_id = format!("usr_{}", Uuid::new_v4());
+        let machine_id = format!("mid_{}", Uuid::new_v4());
+        conn.execute(
+            "INSERT INTO users (id, name, email, role, active) VALUES (?1, ?2, ?3, ?4, 1)",
+            params![user_id, "Local User", "user@localhost", "admin"],
+        )
+        .map_err(|e| DocForgeError::StorageIo(format!("Create default user: {e}")))?;
+
+        // Create machine ID entry for audit purposes
+        conn.execute(
+            "INSERT INTO devices (id, license_id, machine_id, name) VALUES (?1, NULL, ?2, 'Local Machine')",
+            params![format!("dev_{}", Uuid::new_v4()), machine_id],
+        ).map_err(|e| DocForgeError::StorageIo(format!("Create device entry: {e}")))?;
+    }
+
+    Ok(())
+}
+
+/// Get the current local user's role (for single-user desktop app).
+pub fn get_current_user_role(conn: &Connection) -> Result<UserRole, DocForgeError> {
+    // Ensure local user exists
+    let _ = initialize_local_user(conn);
+
+    let row: (String, String) = conn
+        .query_row(
+            "SELECT id, role FROM users WHERE org_id IS NULL AND active = 1 ORDER BY created_at ASC LIMIT 1",
+            [],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )
+        .map_err(|e| DocForgeError::StorageIo(format!("Get current user: {e}")))?;
+
+    let role = UserRole::from_str(&row.1).unwrap_or(UserRole::Admin);
+    Ok(role)
+}
+
+/// Get current user info.
+pub fn get_current_user(conn: &Connection) -> Result<(String, String, String, String), DocForgeError> {
+    // Ensure local user exists
+    let _ = initialize_local_user(conn);
+
+    let row: (String, String, String, String) = conn
+        .query_row(
+            "SELECT id, role, name, email FROM users WHERE org_id IS NULL AND active = 1 ORDER BY created_at ASC LIMIT 1",
+            [],
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
+        )
+        .map_err(|e| DocForgeError::StorageIo(format!("Get current user details: {e}")))?;
+
+    Ok(row)
+}
+
+/// Set the current local user's role (admin-only operation).
+pub fn set_current_user_role(conn: &Connection, new_role: UserRole) -> Result<(), DocForgeError> {
+    authorize(UserRole::Admin, Action::ManageUsers)?;
+
+    let (user_id, _, _, _) = get_current_user(conn)?;
+
+    conn.execute(
+        "UPDATE users SET role = ?1, updated_at = datetime('now') WHERE id = ?2",
+        params![new_role.to_string(), user_id],
+    )
+    .map_err(|e| DocForgeError::StorageIo(format!("Update user role: {e}")))?;
+
+    Ok(())
+}
+
+/// Check if the current user is authorized for an action (convenience wrapper).
+pub fn require_authorization(conn: &Connection, action: Action) -> Result<(), DocForgeError> {
+    let role = get_current_user_role(conn)?;
+    authorize(role, action)
 }
 
 /// Transitions template lifecycle status (Draft -> Review -> Published -> Archived).
@@ -91,13 +200,12 @@ pub fn transition_template_status(
     conn: &Connection,
     template_id: &str,
     target_status: TemplateStatus,
-    user_role: UserRole,
 ) -> Result<(), DocForgeError> {
     // Approver or Admin required to publish
     if target_status == TemplateStatus::Published {
-        authorize(user_role, Action::ApproveTemplate)?;
+        authorize(get_current_user_role(conn)?, Action::ApproveTemplate)?;
     } else {
-        authorize(user_role, Action::CreateTemplate)?;
+        authorize(get_current_user_role(conn)?, Action::CreateTemplate)?;
     }
 
     let status_str = target_status.to_string();
@@ -181,7 +289,11 @@ pub fn generate_usage_report(conn: &Connection) -> Result<UsageReport, DocForgeE
         .unwrap_or(0);
 
     let active_templates_count: u64 = conn
-        .query_row("SELECT COUNT(*) FROM templates WHERE status != 'archived'", [], |r| r.get(0))
+        .query_row(
+            "SELECT COUNT(*) FROM templates WHERE status != 'archived'",
+            [],
+            |r| r.get(0),
+        )
         .unwrap_or(0);
 
     Ok(UsageReport {

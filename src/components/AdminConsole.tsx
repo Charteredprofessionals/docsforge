@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Users, Key, FileSpreadsheet, Settings, Database, Download, Upload } from "lucide-react";
+import { Users, Key, FileSpreadsheet, Settings, Database, Download, Upload, Bug } from "lucide-react";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { backupDatabase, restoreDatabase } from "../lib/ipc";
+import BugBook from "./BugBook";
 
 export default function AdminConsole() {
-  const [tab, setTab] = useState<"users" | "licenses" | "audit" | "policy" | "data">("users");
+  const [tab, setTab] = useState<"users" | "licenses" | "audit" | "policy" | "data" | "bugs">("users");
   const [message, setMessage] = useState<string | null>(null);
 
   const handleBackup = async () => {
@@ -94,6 +95,15 @@ export default function AdminConsole() {
           <Database className="w-4 h-4" />
           Data
         </button>
+        <button
+          onClick={() => setTab("bugs")}
+          className={`flex items-center gap-2 pb-3 px-2 font-medium text-sm border-b-2 transition ${
+            tab === "bugs" ? "border-blue-500 text-blue-400" : "border-transparent text-slate-400 hover:text-white"
+          }`}
+        >
+          <Bug className="w-4 h-4" />
+          Bug Book
+        </button>
       </div>
 
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
@@ -153,6 +163,7 @@ export default function AdminConsole() {
             {message && <div className="text-slate-300 text-sm">{message}</div>}
           </div>
         )}
+        {tab === "bugs" && <BugBook />}
       </div>
     </div>
   );

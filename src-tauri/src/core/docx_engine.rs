@@ -23,7 +23,12 @@ pub const MAX_ZIP_ENTRIES: usize = 5_000;
 pub const MAX_COMPRESSION_RATIO: u64 = 100;
 
 /// Represents a fillable field specification for template tagging.
+///
+/// Uses `camelCase` (de)serialization to match the TypeScript `TemplateField`
+/// contract on the frontend (`originalText`, `tagName`), which is the shape sent
+/// by `save_template` and returned via `get_template` / `list_templates`.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct TemplateFieldSpec {
     pub id: String,
     pub label: String,
@@ -310,5 +315,26 @@ mod tests {
         } else {
             panic!("Expected InvalidDocx error");
         }
+    }
+
+    /// Regression test for the `save_template` "missing field `original_text`" error:
+    /// the frontend sends `TemplateField` objects with camelCase keys, so the struct
+    /// must deserialize them via `#[serde(rename_all = "camelCase")]`.
+    #[test]
+    fn test_field_spec_deserializes_camel_case() {
+        let json = r#"{"id":"f1","label":"Client Name","originalText":"John Doe","tagName":"client_name"}"#;
+        let spec: TemplateFieldSpec =
+            serde_json::from_str(json).expect("camelCase field spec should deserialize");
+        assert_eq!(spec.id, "f1");
+        assert_eq!(spec.label, "Client Name");
+        assert_eq!(spec.original_text, "John Doe");
+        assert_eq!(spec.tag_name, "client_name");
+
+        // And it must serialize back to camelCase so the frontend can read it.
+        let roundtrip = serde_json::to_string(&spec).unwrap();
+        assert!(
+            roundtrip.contains("originalText") && roundtrip.contains("tagName"),
+            "expected camelCase keys in serialized output, got: {roundtrip}"
+        );
     }
 }

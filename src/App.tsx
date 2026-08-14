@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AppView } from "./lib/types";
 import TemplateList from "./components/TemplateList";
 import TemplateCreator from "./components/TemplateCreator";
@@ -6,12 +6,17 @@ import TemplateFiller from "./components/TemplateFiller";
 import AdminConsole from "./components/AdminConsole";
 import Bundles from "./components/Bundles";
 import ConsentDialog from "./components/ConsentDialog";
+import { installErrorCapture } from "./lib/errorCapture";
 import { FileText, Plus, List, Shield, Settings, Layers } from "lucide-react";
 
 export default function App() {
   const [view, setView] = useState<AppView>("list");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [showConsentModal, setShowConsentModal] = useState(false);
+
+  useEffect(() => {
+    installErrorCapture();
+  }, []);
 
   const handleCreateTemplate = () => {
     setView("create");

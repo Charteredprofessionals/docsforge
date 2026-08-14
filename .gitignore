@@ -22,6 +22,16 @@ exports/*.zip
 *.msi
 *.msix
 
+# Build logs (temporary)
+build_log*.txt
+test_log*.txt
+
+# AI assistant local state (not project source)
+.kilo/
+
+# Generated documentation artifact
+docs/*.zip
+
 # Caches & Environment
 .env
 .env.local

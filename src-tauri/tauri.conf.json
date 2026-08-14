@@ -31,6 +31,22 @@
       "msi",
       "nsis"
     ],
-    "icon": ["icons/icon.ico"]
+    "icon": ["icons/icon.ico"],
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "sidebarImage": "icons/sidebar.bmp"
+      },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      }
+    },
+    "fileAssociations": [
+      {
+        "ext": ["dfpkg"],
+        "name": "DocForge Package",
+        "description": "DocForge template package"
+      }
+    ]
   }
 }
