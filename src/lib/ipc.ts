@@ -122,13 +122,15 @@ export interface LogBugInput {
 
 export async function logBug(input: LogBugInput): Promise<string> {
   return invokeApi<string>("log_bug", {
-    errorType: input.errorType,
-    message: input.message,
-    stackTrace: input.stackTrace ?? "",
-    severity: input.severity,
-    context: input.context,
-    category: input.category,
-    source: input.source,
+    request: {
+      errorType: input.errorType,
+      message: input.message,
+      stackTrace: input.stackTrace ?? "",
+      severity: input.severity,
+      context: input.context,
+      category: input.category,
+      source: input.source,
+    },
   });
 }
 
@@ -145,14 +147,16 @@ export interface CreateBugInput {
 
 export async function createBugEntry(input: CreateBugInput): Promise<string> {
   return invokeApi<string>("create_bug_entry", {
-    errorType: input.errorType,
-    message: input.message,
-    severity: input.severity,
-    status: input.status,
-    context: input.context,
-    stackTrace: input.stackTrace,
-    category: input.category,
-    keywords: input.keywords,
+    request: {
+      errorType: input.errorType,
+      message: input.message,
+      severity: input.severity,
+      status: input.status,
+      context: input.context,
+      stackTrace: input.stackTrace,
+      category: input.category,
+      keywords: input.keywords,
+    },
   });
 }
 
@@ -169,14 +173,16 @@ export interface ListBugsInput {
 
 export async function listBugs(input: ListBugsInput): Promise<import("./types").BugEntry[]> {
   return invokeApi<import("./types").BugEntry[]>("list_bugs", {
-    dateFrom: input.dateFrom,
-    dateTo: input.dateTo,
-    severity: input.severity,
-    status: input.status,
-    keyword: input.keyword,
-    sortBy: input.sortBy,
-    sortDir: input.sortDir,
-    limit: input.limit,
+    request: {
+      dateFrom: input.dateFrom,
+      dateTo: input.dateTo,
+      severity: input.severity,
+      status: input.status,
+      keyword: input.keyword,
+      sortBy: input.sortBy,
+      sortDir: input.sortDir,
+      limit: input.limit,
+    },
   });
 }
 
@@ -210,27 +216,31 @@ export async function addBugAttachment(input: AddBugAttachmentInput): Promise<im
 
 export async function exportBugsCsv(input: ListBugsInput): Promise<string> {
   const res = await invokeApi<{ csv: string }>("export_bugs_csv", {
-    dateFrom: input.dateFrom,
-    dateTo: input.dateTo,
-    severity: input.severity,
-    status: input.status,
-    keyword: input.keyword,
-    sortBy: input.sortBy,
-    sortDir: input.sortDir,
-    limit: input.limit,
+    request: {
+      dateFrom: input.dateFrom,
+      dateTo: input.dateTo,
+      severity: input.severity,
+      status: input.status,
+      keyword: input.keyword,
+      sortBy: input.sortBy,
+      sortDir: input.sortDir,
+      limit: input.limit,
+    },
   });
   return res.csv;
 }
 
 export async function exportBugsPdf(input: ListBugsInput): Promise<{ pdfBase64: string; filename: string }> {
   return invokeApi<{ pdfBase64: string; filename: string }>("export_bugs_pdf", {
-    dateFrom: input.dateFrom,
-    dateTo: input.dateTo,
-    severity: input.severity,
-    status: input.status,
-    keyword: input.keyword,
-    sortBy: input.sortBy,
-    sortDir: input.sortDir,
-    limit: input.limit,
+    request: {
+      dateFrom: input.dateFrom,
+      dateTo: input.dateTo,
+      severity: input.severity,
+      status: input.status,
+      keyword: input.keyword,
+      sortBy: input.sortBy,
+      sortDir: input.sortDir,
+      limit: input.limit,
+    },
   });
 }
