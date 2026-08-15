@@ -1,6 +1,6 @@
 {
   "corpus": "DocForge 50-Fixture DOCX Tag-Fidelity Test Corpus",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "target_fidelity": "100%",
   "categories": [
     "simple_text_run",

@@ -215,46 +215,116 @@ where
 
     let mut writer = XmlWriter::new(Cursor::new(Vec::new()));
     let mut buf = Vec::new();
-    let mut text_buf = String::new();
+
+    // Buffer each <w:p> paragraph independently so a field selection spanning
+    // multiple <w:t> runs (different formatting, e.g. "Jane **Doe**") is matched
+    // as a single logical string (ADR-002). The transformed text is written into
+    // the first run, preserving its <w:rPr> formatting; subsequent runs are cleared.
+    let mut para_events: Vec<Event<'static>> = Vec::new();
+    let mut para_text = String::new();
+    let mut in_para = false;
 
     loop {
         match reader.read_event_into(&mut buf) {
             Ok(Event::Eof) => break,
             Ok(Event::Start(e)) => {
-                writer
-                    .write_event(Event::Start(e))
-                    .map_err(|e| DocForgeError::Internal(format!("Write XML start: {e}")))?;
-                text_buf.clear();
+                let name = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                if name == "w:p" {
+                    para_events.clear();
+                    para_text.clear();
+                    in_para = true;
+                    para_events.push(Event::Start(e.into_owned()));
+                } else if in_para {
+                    para_events.push(Event::Start(e.into_owned()));
+                } else {
+                    writer
+                        .write_event(Event::Start(e))
+                        .map_err(|e| DocForgeError::Internal(format!("Write XML start: {e}")))?;
+                }
+                buf.clear();
             }
             Ok(Event::End(e)) => {
-                let tag_name = String::from_utf8_lossy(e.name().as_ref()).to_string();
-                if tag_name == "w:t" {
-                    let transformed = transform(&text_buf);
+                let name = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                if in_para {
+                    if name == "w:p" {
+                        let transformed = transform(&para_text);
+                        let mut first_t_in_para = true;
+                        for ev in para_events.drain(..) {
+                            match ev {
+                                Event::Start(s) => writer
+                                    .write_event(Event::Start(s))
+                                    .map_err(|e| {
+                                        DocForgeError::Internal(format!("Write XML start: {e}"))
+                                    })?,
+                                Event::End(s) => writer
+                                    .write_event(Event::End(s))
+                                    .map_err(|e| {
+                                        DocForgeError::Internal(format!("Write XML end: {e}"))
+                                    })?,
+                                Event::Text(_) => {
+                                    if first_t_in_para {
+                                        writer
+                                            .write_event(Event::Text(BytesText::new(&transformed)))
+                                            .map_err(|e| {
+                                                DocForgeError::Internal(format!(
+                                                    "Write XML text: {e}"
+                                                ))
+                                            })?;
+                                        first_t_in_para = false;
+                                    } else {
+                                        writer
+                                            .write_event(Event::Text(BytesText::new("")))
+                                            .map_err(|e| {
+                                                DocForgeError::Internal(format!(
+                                                    "Write XML text: {e}"
+                                                ))
+                                            })?;
+                                    }
+                                }
+                                other => writer.write_event(other).map_err(|e| {
+                                    DocForgeError::Internal(format!("Write XML event: {e}"))
+                                })?,
+                            }
+                        }
+                        in_para = false;
+                    } else {
+                        para_events.push(Event::End(e.into_owned()));
+                    }
+                } else {
                     writer
-                        .write_event(Event::Text(BytesText::new(&transformed)))
-                        .map_err(|e| DocForgeError::Internal(format!("Write XML text: {e}")))?;
-                    text_buf.clear();
+                        .write_event(Event::End(e))
+                        .map_err(|e| DocForgeError::Internal(format!("Write XML end: {e}")))?;
                 }
-                writer
-                    .write_event(Event::End(e))
-                    .map_err(|e| DocForgeError::Internal(format!("Write XML end: {e}")))?;
+                buf.clear();
             }
-            Ok(Event::Text(e)) => {
-                let unescaped = e
+            Ok(Event::Text(t)) => {
+                let unescaped = t
                     .unescape()
                     .map_err(|e| DocForgeError::InvalidDocx(format!("Unescape XML text: {e}")))?;
-                text_buf.push_str(&unescaped);
+                if in_para {
+                    para_text.push_str(&unescaped);
+                    para_events.push(Event::Text(t.into_owned()));
+                } else {
+                    writer
+                        .write_event(Event::Text(t))
+                        .map_err(|e| DocForgeError::Internal(format!("Write XML text: {e}")))?;
+                }
+                buf.clear();
             }
             Ok(event) => {
-                writer
-                    .write_event(event)
-                    .map_err(|e| DocForgeError::Internal(format!("Write XML event: {e}")))?;
+                if in_para {
+                    para_events.push(event.into_owned());
+                } else {
+                    writer
+                        .write_event(event)
+                        .map_err(|e| DocForgeError::Internal(format!("Write XML event: {e}")))?;
+                }
+                buf.clear();
             }
             Err(e) => {
                 return Err(DocForgeError::InvalidDocx(format!("XML parse error: {e}")));
             }
         }
-        buf.clear();
     }
 
     let result = writer.into_inner().into_inner();

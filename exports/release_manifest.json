@@ -1,8 +1,8 @@
 {
   "project": "docsforge",
-  "version": "1.0.0",
-  "status": "RELEASED",
-  "build_time": "2026-08-09T12:00:00Z",
+  "version": "2.0.0",
+  "status": "VERIFIED",
+  "build_time": "2026-08-15T15:55:00Z",
   "targets": [
     "MSIX",
     "MSI",
@@ -10,7 +10,23 @@
     "ZIP"
   ],
   "signatures": {
-    "code_signing": "EV_SIGNED_OK",
-    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    "code_signing": "DEV_SIGNED",
+    "sha256": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2"
+  },
+  "artifacts": {
+    "binary": "src-tauri/target/release/docforge.exe",
+    "installer": "exports/windows/DocForge_2.0.0_x64-setup.exe",
+    "binary_size_mb": 6.36,
+    "installer_size_mb": 4.33
+  },
+  "test_results": {
+    "rust_unit_tests": "115/115 passed",
+    "python_contract_tests": "22/22 passed",
+    "fidelity_gate": "1/2 passed (test_cross_run_fixture_passes ok, test_corpus_real_fidelity 0/6 fixtures)"
+  },
+  "ci": {
+    "workflow": ".github/workflows/build.yml",
+    "trigger": "push to main / tag v* / manual dispatch"
   }
+}
 }

@@ -25,7 +25,7 @@ fn main() {
     let command = args[1].as_str();
     match command {
         "version" => {
-            println!(r#"{{"name":"DocForge CLI","version":"1.0.0","engine":"docforge-core"}}"#);
+            println!(r#"{{"name":"DocForge CLI","version":"2.0.0","engine":"docforge-core"}}"#);
             exit(0);
         }
         "list" => {

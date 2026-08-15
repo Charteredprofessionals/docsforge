@@ -5,7 +5,7 @@ Accepted (2026-08-10)
 
 ## Context
 A parallel DocForge variant (`D:\PROJECTS\templatebuilder`, v0.1.0) prototyped several
-features our v1.0.0 lacked. A structured comparison (see `docs/COMPARISON_TEMPLATEBUILDER.md`)
+features our v2.0.0 lacked. A structured comparison (see `docs/COMPARISON_TEMPLATEBUILDER.md`)
 showed it was feature-richer but architecturally divergent (dual-engine `docxtemplater`,
 BLOB storage, `csp: null`, no RBAC/audit) and was an unfinished/experimental snapshot.
 

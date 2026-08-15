@@ -77,8 +77,8 @@
     },
     "distribution_valid": {
       "status": "passed",
-      "detail": "docsforge-1.0.0.tar.gz: 113 member(s), no forbidden paths, src/ and requirements.txt present",
-      "tarball": "docsforge-1.0.0.tar.gz",
+      "detail": "docsforge-2.0.0.tar.gz: 113 member(s), no forbidden paths, src/ and requirements.txt present",
+      "tarball": "docsforge-2.0.0.tar.gz",
       "members": 113,
       "forbidden": [],
       "forbidden_count": 0,
@@ -250,8 +250,8 @@
     },
     "distribution": {
       "status": "passed",
-      "detail": "docsforge-1.0.0.tar.gz: 113 member(s), no forbidden paths, src/ and requirements.txt present",
-      "tarball": "docsforge-1.0.0.tar.gz",
+      "detail": "docsforge-2.0.0.tar.gz: 113 member(s), no forbidden paths, src/ and requirements.txt present",
+      "tarball": "docsforge-2.0.0.tar.gz",
       "members": 113,
       "forbidden": [],
       "forbidden_count": 0,

@@ -6,7 +6,7 @@
   "packages": [
     {
       "name": "docforge-core",
-      "versionInfo": "1.0.0",
+      "versionInfo": "2.0.0",
       "licenseConcluded": "Proprietary"
     },
     {

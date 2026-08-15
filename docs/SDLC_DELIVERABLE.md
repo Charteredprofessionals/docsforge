@@ -2,7 +2,7 @@
 
 **Product:** DocForge — Deterministic, offline-first document automation desktop app
 **Platform:** Windows desktop (cross-platform capable: Tauri 2 runtime)
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Use case:** Turn a Word (`.docx`) document into a reusable template with fillable fields, then generate completed `.docx`/`.pdf` documents entirely on-device. No cloud, no accounts, no AI.
 
 This document walks through the **standard Software Development Life Cycle (SDLC)** for DocForge, phase by phase, with concrete, runnable artifacts. Every claim below is backed by code that currently exists in the repository and was verified to build and pass tests.
@@ -290,8 +290,8 @@ npm run build          # tsc + vite build -> dist/
 npx tauri build --bundles msi,nsis
 ```
 Artifacts land in `src-tauri/target/release/bundle/`:
-- `msi/DocForge_1.0.0_x64_en-US.msi`
-- `nsis/DocForge_1.0.0_x64-setup.exe`
+- `msi/DocForge_2.0.0_x64_en-US.msi`
+- `nsis/DocForge_2.0.0_x64-setup.exe`
 
 **Build the optional headless engines** (enterprise/automation)
 ```bash
@@ -382,8 +382,8 @@ npm run build
 npx tauri build --bundles msi,nsis
 ```
 Outputs:
-- `src-tauri/target/release/bundle/msi/DocForge_1.0.0_x64-en-US.msi`
-- `src-tauri/target/release/bundle/nsis/DocForge_1.0.0_x64-setup.exe`
+- `src-tauri/target/release/bundle/msi/DocForge_2.0.0_x64-en-US.msi`
+- `src-tauri/target/release/bundle/nsis/DocForge_2.0.0_x64-setup.exe`
 
 ### 5.2 CI/CD packaging (GitHub Actions)
 The repo includes `.github/workflows/build.yml`:

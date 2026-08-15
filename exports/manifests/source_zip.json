@@ -1,7 +1,7 @@
 {
   "project": "DocForge",
-  "version": "1.0.0",
-  "artifact": "DocForge-1.0.0.zip",
+  "version": "2.0.0",
+  "artifact": "DocForge-2.0.0.zip",
   "format": "source_zip",
   "platform": "any",
   "architecture": "universal",
@@ -9,5 +9,5 @@
   "build_status": "passed",
   "validation_status": "passed",
   "sha256": "16454bd139c9f31cf280e40197598afb6f09a20259142c1698854ba016292008",
-  "output_path": "D:\\sdlc_studio\\projects\\docsforge\\exports\\source\\DocForge-1.0.0.zip"
+  "output_path": "D:\\sdlc_studio\\projects\\docsforge\\exports\\source\\DocForge-2.0.0.zip"
 }

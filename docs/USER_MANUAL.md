@@ -42,8 +42,8 @@ That is DocForge. You do it all on your own computer; nothing ever leaves your m
 
 ### Installation
 1. Download the native installer from your IT distributor or release package:
-   - `DocForge_1.0.0_x64_en-US.msi` (recommended — Windows Installer for enterprise/user install)
-   - `DocForge_1.0.0_x64-setup.exe` (NSIS installer — single-user desktop setup)
+   - `DocForge_2.0.0_x64_en-US.msi` (recommended — Windows Installer for enterprise/user install)
+   - `DocForge_2.0.0_x64-setup.exe` (NSIS installer — single-user desktop setup)
    - `DocForge.msix` (Microsoft Store / enterprise sideload package)
 2. Run the installer and follow the prompts.
 3. Launch **DocForge** directly from your Start Menu.

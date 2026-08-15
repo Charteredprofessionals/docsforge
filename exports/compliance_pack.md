@@ -1,6 +1,6 @@
 # DocForge Enterprise Compliance Pack
 
-> Product: DocForge | Version: 1.0.0 | Vendor: DocForge, Inc.
+> Product: DocForge | Version: 2.0.0 | Vendor: DocForge, Inc.
 
 ## 1. Compliance Architecture Overview
 DocForge is designed from the ground up as an offline-first, deterministic document automation platform.
