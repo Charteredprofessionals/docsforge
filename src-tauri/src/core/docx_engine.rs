@@ -286,6 +286,11 @@ where
                                 })?,
                             }
                         }
+                        writer
+                            .write_event(Event::End(e))
+                            .map_err(|e| {
+                                DocForgeError::Internal(format!("Write XML end: {e}"))
+                            })?;
                         in_para = false;
                     } else {
                         para_events.push(Event::End(e.into_owned()));
