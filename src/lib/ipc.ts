@@ -110,6 +110,19 @@ export async function removeTemplateFromBundle(
   return invokeApi<void>("remove_template_from_bundle_cmd", { bundleId, templateId });
 }
 
+// ── Template field extraction / CSV export (mail-merge Phase A) ──────────────────
+
+export async function getTemplateFields(templateId: string): Promise<string[]> {
+  return invokeApi<string[]>("get_template_fields", { request: { templateId } });
+}
+
+export async function exportTemplateFieldsCsv(templateId: string): Promise<string> {
+  const res = await invokeApi<{ csv: string }>("export_template_fields_csv", {
+    request: { templateId },
+  });
+  return res.csv;
+}
+
 // ── Bug Book (Admin Console crash/error log) ──────────────────────────────────
 
 export interface LogBugInput {

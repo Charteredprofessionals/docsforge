@@ -11,6 +11,7 @@ use zip::ZipArchive;
 
 use crate::AppState;
 use crate::core::docx_engine::{fill_document, tag_document, TemplateFieldSpec};
+use crate::core::field_mapping::extraction::extract_placeholders_from_docx;
 use crate::core::governance::{
     authorize, get_current_user as get_db_current_user, get_current_user_role, set_current_user_role,
     Action,
@@ -156,6 +157,75 @@ pub fn get_template(state: State<AppState>, template_id: String) -> Result<Strin
     };
 
     serde_json::to_string(&full).map_err(|e| format!("Serialize: {e}"))
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetTemplateFieldsRequest {
+    pub template_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportTemplateFieldsCsvRequest {
+    pub template_id: String,
+}
+
+/// Extracts the unique `{{field}}` placeholder names embedded in a saved template's
+/// DOCX and returns them as a clean list (braces stripped) for verification and
+/// downstream CSV bulk-entry (Phase A of the mail-merge feature).
+#[tauri::command]
+pub fn get_template_fields(
+    state: State<AppState>,
+    request: GetTemplateFieldsRequest,
+) -> Result<String, String> {
+    let db = state.db.lock().map_err(|e| format!("DB lock: {e}"))?;
+    authorize(get_current_user_role(&db)?, Action::ViewTemplate).map_err(|e| e.to_string())?;
+
+    let (_record, bytes) =
+        template_store::load_template_file(&db, &request.template_id).map_err(|e| e.to_string())?;
+
+    let placeholders = extract_placeholders_from_docx(&bytes).map_err(|e| e.to_string())?;
+    let fields: Vec<String> = placeholders
+        .iter()
+        .map(|p| p.trim_start_matches("{{").trim_end_matches("}}").to_string())
+        .collect();
+
+    serde_json::to_string(&serde_json::json!({ "fields": fields }))
+        .map_err(|e| format!("Serialize: {e}"))
+}
+
+/// Produces a downloadable CSV whose header row matches the template's extracted
+/// `{{field}}` placeholder names plus a reserved `output_filename` column, ready
+/// for bulk data entry (one output document per data row).
+#[tauri::command]
+pub fn export_template_fields_csv(
+    state: State<AppState>,
+    request: ExportTemplateFieldsCsvRequest,
+) -> Result<String, String> {
+    let db = state.db.lock().map_err(|e| format!("DB lock: {e}"))?;
+    authorize(get_current_user_role(&db)?, Action::ViewTemplate).map_err(|e| e.to_string())?;
+
+    let (_record, bytes) =
+        template_store::load_template_file(&db, &request.template_id).map_err(|e| e.to_string())?;
+
+    let placeholders = extract_placeholders_from_docx(&bytes).map_err(|e| e.to_string())?;
+    let fields: Vec<String> = placeholders
+        .iter()
+        .map(|p| p.trim_start_matches("{{").trim_end_matches("}}").to_string())
+        .collect();
+
+    let mut headers = fields.clone();
+    headers.push("output_filename".to_string());
+
+    let header_row = headers
+        .iter()
+        .map(|h| crate::core::bug_book::csv_escape(h))
+        .collect::<Vec<_>>()
+        .join(",");
+
+    let csv = format!("{header_row}\n");
+    serde_json::to_string(&serde_json::json!({ "csv": csv })).map_err(|e| format!("Serialize: {e}"))
 }
 
 #[derive(Debug, Serialize, Deserialize)]

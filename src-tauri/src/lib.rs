@@ -33,6 +33,8 @@ pub fn run() {
             commands::save_template,
             commands::list_templates,
             commands::get_template,
+            commands::get_template_fields,
+            commands::export_template_fields_csv,
             commands::fill_template,
             commands::delete_template,
             commands::export_to_pdf,
