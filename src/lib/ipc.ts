@@ -76,9 +76,11 @@ export interface CreateBundleInput {
 
 export async function createBundle(input: CreateBundleInput): Promise<string> {
   return invokeApi<string>("create_bundle_cmd", {
-    name: input.name,
-    description: input.description,
-    templateIds: input.templateIds,
+    request: {
+      name: input.name,
+      description: input.description,
+      templateIds: input.templateIds,
+    },
   });
 }
 
@@ -241,6 +243,20 @@ export async function exportBugsPdf(input: ListBugsInput): Promise<{ pdfBase64: 
       sortBy: input.sortBy,
       sortDir: input.sortDir,
       limit: input.limit,
+    },
+  });
+}
+
+export interface FillTemplateInput {
+  templateId: string;
+  values: Record<string, string>;
+}
+
+export async function fillTemplate(input: FillTemplateInput): Promise<string> {
+  return invokeApi<string>("fill_template", {
+    request: {
+      templateId: input.templateId,
+      values: input.values,
     },
   });
 }
