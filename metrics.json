@@ -1,7 +1,7 @@
 {
   "llm_calls": 0,
   "tokens": 0,
-  "repair_attempts": 1,
+  "repair_attempts": 2,
   "worker_seconds": 0.0,
   "test_seconds": 0.0,
   "index_seconds": 0.0,
