@@ -31,6 +31,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::upload_docx,
             commands::save_template,
+            commands::seed_sample_template,
             commands::list_templates,
             commands::get_template,
             commands::get_template_fields,
@@ -57,6 +58,8 @@ pub fn run() {
             commands::export_bugs_pdf,
             commands::get_current_user,
             commands::set_user_role,
+            commands::get_telemetry_consent,
+            commands::set_telemetry_consent,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

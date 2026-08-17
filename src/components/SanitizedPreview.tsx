@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, forwardRef } from "react";
 
 interface Props {
   html: string;
@@ -6,7 +6,10 @@ interface Props {
   onTextSelection?: () => void;
 }
 
-export default function SanitizedPreview({ html, className = "", onTextSelection }: Props) {
+const SanitizedPreview = forwardRef<HTMLDivElement, Props>(function SanitizedPreview(
+  { html, className = "", onTextSelection },
+  ref
+) {
   // Enforce iframe sandboxing or sanitized container
   const sanitizedHtml = useMemo(() => {
     return html
@@ -17,9 +20,12 @@ export default function SanitizedPreview({ html, className = "", onTextSelection
 
   return (
     <div
+      ref={ref}
       className={`docx-preview select-text ${className}`}
       onMouseUp={onTextSelection}
       dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
     />
   );
-}
+});
+
+export default SanitizedPreview;

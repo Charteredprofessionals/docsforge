@@ -9,5 +9,5 @@ pub fn export_docx(
     template_bytes: &[u8],
     field_values: &HashMap<String, String>,
 ) -> Result<Vec<u8>, DocForgeError> {
-    fill_document(template_bytes, field_values)
+    fill_document(template_bytes, field_values, true)
 }

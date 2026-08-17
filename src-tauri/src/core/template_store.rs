@@ -253,8 +253,11 @@ pub fn list_templates(
 
     let mut result = Vec::new();
     for r in rows {
-        if let Ok(record) = r {
-            result.push(record);
+        match r {
+            Ok(record) => result.push(record),
+            Err(e) => {
+                eprintln!("[template_store] Warning: skipped malformed template row: {e}");
+            }
         }
     }
     Ok(result)

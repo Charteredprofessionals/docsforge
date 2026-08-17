@@ -6,13 +6,12 @@
 //! shape the v2 UI consumes to render an input form (REQ-032).
 
 use rusqlite::Connection;
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::core::error::DocForgeError;
 use crate::core::field_mapping::groups::FieldGroupDetail;
 use crate::core::field_mapping::registry::list_fields;
-use crate::core::field_mapping::schema::{validate_value, FieldDef, FieldType, GroupScope};
+use crate::core::field_mapping::schema::{validate_value, FieldDef, FieldType};
 use crate::core::field_mapping::groups::list_field_groups;
 use crate::core::matter::matter::{get_matter, Matter};
 use crate::core::matter::matter_values::{list_matter_values, set_matter_value};

@@ -46,7 +46,7 @@
           "path": "src-tauri/src/migrations.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -77,7 +77,7 @@
           "path": "src-tauri/src/core/bundle/manifest.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -105,7 +105,7 @@
           "path": "src-tauri/src/core/bundle/version.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -140,7 +140,7 @@
           "path": "src-tauri/src/core/export/dfpkg.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -171,7 +171,7 @@
           "path": "src-tauri/src/core/bundle/output_config.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -205,7 +205,7 @@
           "path": "src-tauri/src/core/field_mapping/registry.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -233,7 +233,7 @@
           "path": "src-tauri/src/core/field_mapping/groups.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -261,7 +261,7 @@
           "path": "src-tauri/src/core/field_mapping/mapping.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -295,7 +295,7 @@
           "path": "src-tauri/src/core/field_mapping/placeholders.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -327,7 +327,7 @@
           "path": "src-tauri/src/core/matter/matter.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -355,7 +355,7 @@
           "path": "src-tauri/src/core/matter/data.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -384,7 +384,7 @@
           "path": "src-tauri/src/core/matter/form.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -414,7 +414,7 @@
           "path": "src-tauri/src/core/matter/validation.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -446,7 +446,7 @@
           "path": "src-tauri/src/core/rules/parser.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -475,7 +475,7 @@
           "path": "src-tauri/src/core/rules/evaluate.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -507,7 +507,7 @@
           "path": "src-tauri/src/core/generation_run/record.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -544,7 +544,7 @@
           "path": "src-tauri/src/services/generation_run.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -575,7 +575,7 @@
           "path": "src-tauri/tests/regression_v2.rs"
         }
       ],
-      "status": "completed",
+      "status": "verified",
       "attempts": 0,
       "tier": "standard"
     },
@@ -657,6 +657,56 @@
       "status": "pending",
       "attempts": 0,
       "tier": "standard"
+    },
+    {
+      "id": "TASK-121",
+      "title": "Mail-merge workflow realignment (CR-2026-003)",
+      "description": "Move per-template mail-merge (export fields CSV + batch fill from CSV) out of the Admin Console into TemplateFiller (per-template context); add bundle-level per-template CSV upload or manual fill with 'Generate All Docs from Bundle' in Bundles; seed a first-run sample template. No schema change. Resolves the user-reported misplacement where CSV batch lived in the org-wide Admin Console with a hardcoded 'placeholder' template id.",
+      "module": "gui_shell",
+      "wave": "M2",
+      "depends_on": [
+        "TASK-119"
+      ],
+      "verification": "cargo build (0 errors/warnings) + npm run build (clean); manual: TemplateFiller shows CSV panel, Bundles detail shows per-template CSV, TemplateList offers Load Sample Template",
+      "requirements": [
+        "REQ-004",
+        "REQ-010"
+      ],
+      "acceptance_criteria": [
+        "AC-004"
+      ],
+      "acceptance_tests": [
+        "AC-004"
+      ],
+      "outputs": [
+        {
+          "path": "src-tauri/src/commands.rs"
+        },
+        {
+          "path": "src-tauri/src/lib.rs"
+        },
+        {
+          "path": "src/lib/ipc.ts"
+        },
+        {
+          "path": "src/components/AdminConsole.tsx"
+        },
+        {
+          "path": "src/components/TemplateFiller.tsx"
+        },
+        {
+          "path": "src/components/Bundles.tsx"
+        },
+        {
+          "path": "src/components/TemplateList.tsx"
+        },
+        {
+          "path": "docs/governance/CHANGELOG.md"
+        }
+      ],
+      "status": "verified",
+      "attempts": 0,
+      "tier": "normal"
     }
   ]
 }

@@ -25,10 +25,15 @@ export default function FieldModal({ selectedText, existingTags, onSave, onCance
     }
   }, [selectedText]);
 
-  const tagName = labelToTagName(label || "field");
-  const uniqueTagName = existingTags.includes(tagName)
-    ? `${tagName}_${existingTags.length + 1}`
-    : tagName;
+  const uniqueTagName = React.useMemo(() => {
+    const base = labelToTagName(label || "field");
+    if (!existingTags.includes(base)) return base;
+    let i = 2;
+    while (existingTags.includes(`${base}_${i}`)) {
+      i++;
+    }
+    return `${base}_${i}`;
+  }, [label, existingTags]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

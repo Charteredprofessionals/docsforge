@@ -49,7 +49,7 @@ export default function AdminConsole() {
         </div>
       </div>
 
-      <div className="flex gap-4 border-b border-slate-800 mb-6">
+      <div className="flex gap-4 border-b border-slate-800 mb-6 flex sm:flex-col">
         <button
           onClick={() => setTab("users")}
           className={`flex items-center gap-2 pb-3 px-2 font-medium text-sm border-b-2 transition ${
@@ -146,7 +146,7 @@ export default function AdminConsole() {
             <p className="text-slate-400 text-sm mb-4">
               Back up or restore the local DocForge database (templates, audit logs, licenses).
             </p>
-            <div className="flex gap-3 mb-4">
+            <div className="flex gap-3">
               <button
                 onClick={handleBackup}
                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm transition font-medium"
@@ -160,7 +160,7 @@ export default function AdminConsole() {
                 <Upload className="w-4 h-4" /> Restore Database
               </button>
             </div>
-            {message && <div className="text-slate-300 text-sm">{message}</div>}
+            {message && <div className="text-slate-300 text-sm mt-4">{message}</div>}
           </div>
         )}
         {tab === "bugs" && <BugBook />}

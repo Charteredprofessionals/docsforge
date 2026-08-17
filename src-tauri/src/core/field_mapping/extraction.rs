@@ -301,7 +301,7 @@ mod tests {
             )
             .expect("head version");
 
-        let field = create_field(
+        let _field = create_field(
             &conn,
             &bv_id,
             &FieldDef {

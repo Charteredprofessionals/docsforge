@@ -1,6 +1,11 @@
 //! services/mod.rs — Service facade layer executing tasks off the UI thread.
 
 pub mod webhook;
+pub mod telemetry;
+pub mod governance;
+pub mod policy;
+pub mod auth;
+pub mod rest_bridge;
 
 use std::collections::HashMap;
 use rusqlite::Connection;
@@ -47,7 +52,7 @@ impl DocumentService {
     ) -> Result<Vec<u8>, DocForgeError> {
         let (record, docx_bytes) = load_template_file(conn, template_id)?;
 
-        let filled = fill_document(&docx_bytes, values)?;
+        let filled = fill_document(&docx_bytes, values, true)?;
 
         record_generation(conn, template_id, record.current_version, output_name, format, None, None)?;
 

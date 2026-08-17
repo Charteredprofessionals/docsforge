@@ -56,6 +56,14 @@ export async function listTemplates(): Promise<import("./types").TemplateMeta[]>
   return invokeApi<import("./types").TemplateMeta[]>("list_templates", {});
 }
 
+export async function deleteTemplate(templateId: string): Promise<void> {
+  return invokeApi<void>("delete_template", { templateId });
+}
+
+export async function seedSampleTemplate(): Promise<{ id: string; already_exists?: boolean }> {
+  return invokeApi<{ id: string; already_exists?: boolean }>("seed_sample_template", {});
+}
+
 // ── Database backup / restore ─────────────────────────────────────────────────
 
 export async function backupDatabase(targetPath: string): Promise<void> {
@@ -79,7 +87,7 @@ export async function createBundle(input: CreateBundleInput): Promise<string> {
     request: {
       name: input.name,
       description: input.description,
-      templateIds: input.templateIds,
+      template_ids: input.templateIds,
     },
   });
 }
@@ -110,7 +118,7 @@ export async function removeTemplateFromBundle(
   return invokeApi<void>("remove_template_from_bundle_cmd", { bundleId, templateId });
 }
 
-// ── Template field extraction / CSV export (mail-merge Phase A) ──────────────────
+// ── Template field extraction / CSV export (mail-merge Phase A) ──────────────
 
 export async function getTemplateFields(templateId: string): Promise<string[]> {
   return invokeApi<string[]>("get_template_fields", { request: { templateId } });
@@ -188,16 +196,14 @@ export interface ListBugsInput {
 
 export async function listBugs(input: ListBugsInput): Promise<import("./types").BugEntry[]> {
   return invokeApi<import("./types").BugEntry[]>("list_bugs", {
-    request: {
-      dateFrom: input.dateFrom,
-      dateTo: input.dateTo,
-      severity: input.severity,
-      status: input.status,
-      keyword: input.keyword,
-      sortBy: input.sortBy,
-      sortDir: input.sortDir,
-      limit: input.limit,
-    },
+    dateFrom: input.dateFrom,
+    dateTo: input.dateTo,
+    severity: input.severity,
+    status: input.status,
+    keyword: input.keyword,
+    sortBy: input.sortBy,
+    sortDir: input.sortDir,
+    limit: input.limit,
   });
 }
 
@@ -231,38 +237,37 @@ export async function addBugAttachment(input: AddBugAttachmentInput): Promise<im
 
 export async function exportBugsCsv(input: ListBugsInput): Promise<string> {
   const res = await invokeApi<{ csv: string }>("export_bugs_csv", {
-    request: {
-      dateFrom: input.dateFrom,
-      dateTo: input.dateTo,
-      severity: input.severity,
-      status: input.status,
-      keyword: input.keyword,
-      sortBy: input.sortBy,
-      sortDir: input.sortDir,
-      limit: input.limit,
-    },
+    dateFrom: input.dateFrom,
+    dateTo: input.dateTo,
+    severity: input.severity,
+    status: input.status,
+    keyword: input.keyword,
+    sortBy: input.sortBy,
+    sortDir: input.sortDir,
+    limit: input.limit,
   });
   return res.csv;
 }
 
 export async function exportBugsPdf(input: ListBugsInput): Promise<{ pdfBase64: string; filename: string }> {
   return invokeApi<{ pdfBase64: string; filename: string }>("export_bugs_pdf", {
-    request: {
-      dateFrom: input.dateFrom,
-      dateTo: input.dateTo,
-      severity: input.severity,
-      status: input.status,
-      keyword: input.keyword,
-      sortBy: input.sortBy,
-      sortDir: input.sortDir,
-      limit: input.limit,
-    },
+    dateFrom: input.dateFrom,
+    dateTo: input.dateTo,
+    severity: input.severity,
+    status: input.status,
+    keyword: input.keyword,
+    sortBy: input.sortBy,
+    sortDir: input.sortDir,
+    limit: input.limit,
   });
 }
+
+// ── Fill Template ─────────────────────────────────────────────────────────────
 
 export interface FillTemplateInput {
   templateId: string;
   values: Record<string, string>;
+  replaceAll: boolean;
 }
 
 export async function fillTemplate(input: FillTemplateInput): Promise<string> {
@@ -270,6 +275,62 @@ export async function fillTemplate(input: FillTemplateInput): Promise<string> {
     request: {
       templateId: input.templateId,
       values: input.values,
+      replaceAll: input.replaceAll,
+    },
+  });
+}
+
+// ── Batch Fill from CSV (mail-merge Phase B) ─────────────────────────────────
+
+export interface BatchFillFromCsvInput {
+  templateId: string;
+  csv: string;
+  outputDir: string;
+  formats: string[];
+}
+
+export interface BatchGeneratedFile {
+  row: number;
+  filename: string;
+  path: string;
+  sha256: string;
+  status: string;
+  error: string | null;
+}
+
+export interface BatchFillResult {
+  generated: BatchGeneratedFile[];
+  warnings: string[];
+  errors: string[];
+}
+
+export async function batchFillFromCsv(input: BatchFillFromCsvInput): Promise<BatchFillResult> {
+  return invokeApi<BatchFillResult>("batch_fill_from_csv", {
+    request: {
+      templateId: input.templateId,
+      csv: input.csv,
+      outputDir: input.outputDir,
+      formats: input.formats,
+    },
+  });
+}
+
+// ── Telemetry & Consent ───────────────────────────────────────────────────────
+
+export interface TelemetryConsentState {
+  optIn: boolean;
+  crashReports: boolean;
+}
+
+export async function getTelemetryConsent(): Promise<TelemetryConsentState> {
+  return invokeApi<TelemetryConsentState>("get_telemetry_consent", {});
+}
+
+export async function setTelemetryConsent(input: TelemetryConsentState): Promise<void> {
+  return invokeApi<void>("set_telemetry_consent", {
+    request: {
+      optIn: input.optIn,
+      crashReports: input.crashReports,
     },
   });
 }

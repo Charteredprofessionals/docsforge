@@ -9,7 +9,9 @@ use serde_json::Value;
 use uuid::Uuid;
 
 use crate::core::error::DocForgeError;
-use crate::core::matter::matter::{get_matter, Matter};
+use crate::core::matter::matter::get_matter;
+#[cfg(test)]
+use crate::core::matter::matter::Matter;
 
 // ---------------------------------------------------------------------------
 // Types

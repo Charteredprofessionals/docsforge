@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { listTemplates, deleteTemplate, seedSampleTemplate } from "../lib/ipc";
 import { TemplateMeta } from "../lib/types";
-import { Plus, FileText, Play, Trash2, Clock, Tag, Search, AlertTriangle, X } from "lucide-react";
+import { Plus, FileText, Play, Trash2, Clock, Tag, Search, AlertTriangle, X, Loader2 } from "lucide-react";
 
 interface Props {
   onUseTemplate: (templateId: string) => void;
@@ -14,13 +14,13 @@ export default function TemplateList({ onUseTemplate, onCreateTemplate }: Props)
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [deletingTemplate, setDeletingTemplate] = useState<TemplateMeta | null>(null);
+  const [seeding, setSeeding] = useState(false);
 
   const loadTemplates = async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await invoke<string>("list_templates");
-      const parsed: TemplateMeta[] = JSON.parse(result);
+      const parsed = await listTemplates();
       setTemplates(parsed);
     } catch (e) {
       setError(String(e));
@@ -36,11 +36,25 @@ export default function TemplateList({ onUseTemplate, onCreateTemplate }: Props)
   const confirmDelete = async () => {
     if (!deletingTemplate) return;
     try {
-      await invoke("delete_template", { templateId: deletingTemplate.id });
+      await deleteTemplate(deletingTemplate.id);
       setTemplates((prev) => prev.filter((t) => t.id !== deletingTemplate.id));
       setDeletingTemplate(null);
     } catch (e) {
       setError("Failed to delete template: " + e);
+    }
+  };
+
+  const handleLoadSample = async () => {
+    setSeeding(true);
+    setError(null);
+    try {
+      const res = await seedSampleTemplate();
+      await loadTemplates();
+      if (res.id && onUseTemplate) onUseTemplate(res.id);
+    } catch (e) {
+      setError("Failed to load sample template: " + e);
+    } finally {
+      setSeeding(false);
     }
   };
 
@@ -94,6 +108,14 @@ export default function TemplateList({ onUseTemplate, onCreateTemplate }: Props)
               <Plus className="w-4 h-4" />
               New Template
             </button>
+            <button
+              onClick={handleLoadSample}
+              disabled={seeding}
+              className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-60 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shrink-0"
+            >
+              {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+              Load Sample
+            </button>
           </div>
         )}
       </div>
@@ -131,6 +153,14 @@ export default function TemplateList({ onUseTemplate, onCreateTemplate }: Props)
             className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-blue-600/20"
           >
             {searchQuery ? "Clear Search" : <><Plus className="w-5 h-5" /> Create First Template</>}
+          </button>
+          <button
+            onClick={handleLoadSample}
+            disabled={seeding}
+            className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-60 text-white px-6 py-3 rounded-xl font-semibold transition"
+          >
+            {seeding ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
+            Load Sample Template
           </button>
         </div>
       ) : (

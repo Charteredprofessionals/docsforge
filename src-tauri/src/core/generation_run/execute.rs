@@ -11,11 +11,12 @@
 
 use std::collections::HashMap;
 use std::fs;
-use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use rusqlite::Connection;
-use serde_json::{Value, json};
+use serde_json::Value;
+#[cfg(test)]
+use serde_json::json;
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
@@ -182,7 +183,7 @@ pub fn execute_run(
             }
         };
 
-        let filled_docx = match fill_document(&template_bytes, &values) {
+        let filled_docx = match fill_document(&template_bytes, &values, true) {
             Ok(b) => b,
             Err(e) => {
                 errors.push(format!(
@@ -320,7 +321,7 @@ pub fn execute_run(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::bundle::manifest::{create_bundle, get_manifest, save_manifest, BundleDocumentSpec, BundleManifest};
+    use crate::core::bundle::manifest::{create_bundle, save_manifest, BundleDocumentSpec, BundleManifest};
     use crate::core::field_mapping::registry::create_field;
     use crate::core::field_mapping::schema::{FieldDef, FieldType};
     use crate::core::field_mapping::mapping::set_mapping;

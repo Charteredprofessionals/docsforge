@@ -1,6 +1,6 @@
 //! services/governance.rs — Governance service facade for audit exports and admin commands.
 
-use rusqlite::{params, Connection};
+use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 
 use crate::core::error::DocForgeError;

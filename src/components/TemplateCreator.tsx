@@ -13,6 +13,7 @@ import {
 } from "../lib/docxProcessor";
 import { Upload, Save, X, Plus, AlertCircle, ArrowLeft, Tag } from "lucide-react";
 import FieldModal from "./FieldModal";
+import SanitizedPreview from "./SanitizedPreview";
 
 interface Props {
   onComplete: () => void;
@@ -90,6 +91,7 @@ export default function TemplateCreator({ onComplete }: Props) {
         activeSelection.range.surroundContents(highlight);
       } catch (e) {
         // Fallback for complex cross-element selection
+        console.warn("Could not wrap selection with highlight span (cross-element boundary):", e);
       }
     }
 
@@ -229,11 +231,10 @@ export default function TemplateCreator({ onComplete }: Props) {
                 area will become a placeholder that users can fill in.
               </p>
             </div>
-            <div
+            <SanitizedPreview
               ref={previewRef}
-              className="docx-preview select-text"
-              onMouseUp={handleTextSelection}
-              dangerouslySetInnerHTML={{ __html: htmlPreview }}
+              html={htmlPreview}
+              onTextSelection={handleTextSelection}
             />
           </div>
 

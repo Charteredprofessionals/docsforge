@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Shield, Check, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Shield } from "lucide-react";
+import { getTelemetryConsent } from "../lib/ipc";
 
 interface Props {
   onConfirm: (optIn: boolean, crashReports: boolean) => void;
@@ -8,6 +9,21 @@ interface Props {
 export default function ConsentDialog({ onConfirm }: Props) {
   const [optIn, setOptIn] = useState(false);
   const [crashReports, setCrashReports] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getTelemetryConsent()
+      .then((state) => {
+        setOptIn(state.optIn);
+        setCrashReports(state.crashReports);
+      })
+      .catch(() => {
+        /* best-effort default */
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -28,6 +44,7 @@ export default function ConsentDialog({ onConfirm }: Props) {
               type="checkbox"
               checked={optIn}
               onChange={(e) => setOptIn(e.target.checked)}
+              disabled={loading}
               className="mt-1 rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-blue-500"
             />
             <div>
@@ -41,6 +58,7 @@ export default function ConsentDialog({ onConfirm }: Props) {
               type="checkbox"
               checked={crashReports}
               onChange={(e) => setCrashReports(e.target.checked)}
+              disabled={loading}
               className="mt-1 rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-blue-500"
             />
             <div>

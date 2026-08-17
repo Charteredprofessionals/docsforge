@@ -9,7 +9,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::core::error::DocForgeError;
-use crate::core::field_mapping::schema::{FieldDef, validate_value};
+use crate::core::field_mapping::schema::validate_value;
+#[cfg(test)]
+use crate::core::field_mapping::schema::FieldDef;
 use crate::core::field_mapping::registry::list_fields;
 
 /// One row in the `field_mappings` table.

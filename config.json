@@ -1,13 +1,12 @@
 {
   "projectId": "docsforge",
   "projectName": "DocForge",
-  "currentPhase": "RELEASED",
-  "currentTask": null,
+  "currentPhase": "CODING",
+  "currentTask": "TASK-121",
   "status": "released",
   "attempt": 1,
-  "updatedAt": "2026-08-15T15:55:00Z",
+  "updatedAt": "2026-08-17T06:30:25Z",
   "startedAt": "2026-08-09T11:34:00Z",
-  "updatedAt": "2026-08-11T07:40:00Z",
   "lastSuccessfulCheckpoint": null,
   "requirementsVersion": 1,
   "architectureVersion": 1,
@@ -62,7 +61,12 @@
     "targetRelease": "2.0.0",
     "scope": "bundle_matter_generation",
     "reApproval": true,
-    "runPhases": ["bundle", "fields_mappings", "matter", "generation"]
+    "runPhases": [
+      "bundle",
+      "fields_mappings",
+      "matter",
+      "generation"
+    ]
   },
   "plan_refs": {
     "viability": "docs/business/viability-analysis.md",
@@ -74,9 +78,19 @@
     "policy": "docs/governance/POST_RELEASE_CHANGE_POLICY.md",
     "crRegister": "docs/governance/CHANGELOG.md",
     "verifyOnCi": true,
-    "tiers": ["standard", "normal", "emergency"],
+    "tiers": [
+      "standard",
+      "normal",
+      "emergency"
+    ],
     "emergencyRetroSlaHours": 24,
-    "postReleaseTaskIds": ["TASK-031", "TASK-032"]
+    "postReleaseTaskIds": [
+      "TASK-031",
+      "TASK-032"
+    ]
   },
-  "postReleasePhase": "MAINTENANCE"
+  "postReleasePhase": "MAINTENANCE",
+  "postReleaseTaskIds": [
+    "TASK-121"
+  ]
 }

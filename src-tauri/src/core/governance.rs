@@ -124,18 +124,11 @@ pub fn initialize_local_user(conn: &Connection) -> Result<(), DocForgeError> {
 
     if count == 0 {
         let user_id = format!("usr_{}", Uuid::new_v4());
-        let machine_id = format!("mid_{}", Uuid::new_v4());
         conn.execute(
             "INSERT INTO users (id, name, email, role, active) VALUES (?1, ?2, ?3, ?4, 1)",
             params![user_id, "Local User", "user@localhost", "admin"],
         )
         .map_err(|e| DocForgeError::StorageIo(format!("Create default user: {e}")))?;
-
-        // Create machine ID entry for audit purposes
-        conn.execute(
-            "INSERT INTO devices (id, license_id, machine_id, name) VALUES (?1, NULL, ?2, 'Local Machine')",
-            params![format!("dev_{}", Uuid::new_v4()), machine_id],
-        ).map_err(|e| DocForgeError::StorageIo(format!("Create device entry: {e}")))?;
     }
 
     Ok(())
@@ -176,7 +169,8 @@ pub fn get_current_user(conn: &Connection) -> Result<(String, String, String, St
 
 /// Set the current local user's role (admin-only operation).
 pub fn set_current_user_role(conn: &Connection, new_role: UserRole) -> Result<(), DocForgeError> {
-    authorize(UserRole::Admin, Action::ManageUsers)?;
+    let current_role = get_current_user_role(conn)?;
+    authorize(current_role, Action::ManageUsers)?;
 
     let (user_id, _, _, _) = get_current_user(conn)?;
 

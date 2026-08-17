@@ -2,6 +2,7 @@ use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Read;
+use std::io::Write;
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
@@ -11,7 +12,9 @@ use zip::ZipArchive;
 
 use crate::AppState;
 use crate::core::docx_engine::{fill_document, tag_document, TemplateFieldSpec};
+use crate::core::export::export_pdf_from_docx;
 use crate::core::field_mapping::extraction::extract_placeholders_from_docx;
+use sha2::{Digest, Sha256};
 use crate::core::governance::{
     authorize, get_current_user as get_db_current_user, get_current_user_role, set_current_user_role,
     Action,
@@ -114,6 +117,102 @@ pub fn save_template(
     )?;
 
     Ok(serde_json::json!({ "id": record.id, "success": true }).to_string())
+}
+
+/// Builds a minimal but valid DOCX whose body contains the literal marker words
+/// that `seed_sample_template` tags into `{{...}}` placeholders. Kept dependency-free
+/// (plain ZIP + XML) so it passes `validate_docx` without extra crates.
+fn build_sample_template_docx() -> Vec<u8> {
+    let body = r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:body>
+<w:p><w:r><w:t>Dear recipient_name,</w:t></w:r></w:p>
+<w:p><w:r><w:t>Welcome to company_name. This letter is issued on document_date to confirm the details we discussed.</w:t></w:r></w:p>
+<w:p><w:r><w:t>Please review the attached materials and contact sender_name with any questions.</w:t></w:r></w:p>
+<w:p><w:r><w:t>Sincerely,</w:t></w:r></w:p>
+<w:p><w:r><w:t>sender_name</w:t></w:r></w:p>
+</w:body>
+</w:document>"#;
+
+    let mut out = Vec::new();
+    {
+        let cursor = std::io::Cursor::new(&mut out);
+        let mut zip = zip::ZipWriter::new(cursor);
+        let opts = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated);
+        zip.start_file("word/document.xml", opts)
+            .expect("write sample document.xml");
+        zip.write_all(body.as_bytes())
+            .expect("write sample body");
+        let _ = zip.finish().expect("finish sample zip").into_inner();
+    }
+    out
+}
+
+const SAMPLE_TEMPLATE_NAME: &str = "Sample Welcome Letter";
+
+/// Seeds a starter template so first-time users have a working example to learn
+/// DocForge with. Idempotent: returns the existing sample id if already seeded.
+#[tauri::command]
+pub fn seed_sample_template(state: State<AppState>) -> Result<String, String> {
+    let db = state.db.lock().map_err(|e| format!("DB lock: {e}"))?;
+    authorize(get_current_user_role(&db)?, Action::CreateTemplate)
+        .map_err(|e| e.to_string())?;
+
+    let templates = template_store::list_templates(&db, None).map_err(|e| e.to_string())?;
+    if let Some(existing) = templates
+        .iter()
+        .find(|t| t.name == SAMPLE_TEMPLATE_NAME)
+    {
+        return serde_json::to_string(&serde_json::json!({
+            "id": existing.id,
+            "already_exists": true
+        }))
+        .map_err(|e| format!("Serialize: {e}"));
+    }
+
+    let docx_bytes = build_sample_template_docx();
+    let fields = vec![
+        TemplateFieldSpec {
+            id: "f_recipient".to_string(),
+            label: "Recipient Name".to_string(),
+            original_text: "recipient_name".to_string(),
+            tag_name: "recipient_name".to_string(),
+        },
+        TemplateFieldSpec {
+            id: "f_company".to_string(),
+            label: "Company Name".to_string(),
+            original_text: "company_name".to_string(),
+            tag_name: "company_name".to_string(),
+        },
+        TemplateFieldSpec {
+            id: "f_date".to_string(),
+            label: "Document Date".to_string(),
+            original_text: "document_date".to_string(),
+            tag_name: "document_date".to_string(),
+        },
+        TemplateFieldSpec {
+            id: "f_sender".to_string(),
+            label: "Sender Name".to_string(),
+            original_text: "sender_name".to_string(),
+            tag_name: "sender_name".to_string(),
+        },
+    ];
+
+    let record = template_store::save_template(
+        &db,
+        SAMPLE_TEMPLATE_NAME,
+        "general",
+        "A starter template to learn DocForge. Edit or delete it any time.",
+        &fields,
+        &docx_bytes,
+        None,
+        None,
+    )
+    .map_err(|e| e.to_string())?;
+
+    serde_json::to_string(&serde_json::json!({ "id": record.id, "success": true }))
+        .map_err(|e| format!("Serialize: {e}"))
 }
 
 #[tauri::command]
@@ -232,6 +331,7 @@ pub fn export_template_fields_csv(
 pub struct FillTemplateRequest {
     pub template_id: String,
     pub values: HashMap<String, String>,
+    pub replace_all: bool,
 }
 
 #[tauri::command]
@@ -244,7 +344,7 @@ pub fn fill_template(state: State<AppState>, request: FillTemplateRequest) -> Re
 
     let (record, bytes) = template_store::load_template_file(&db, &request.template_id)?;
 
-    let filled = fill_document(&bytes, &request.values)?;
+    let filled = fill_document(&bytes, &request.values, request.replace_all)?;
 
     // Get user/machine IDs for audit
     let user_id = get_db_current_user(&db).ok().map(|user| user.0);
@@ -264,6 +364,157 @@ pub fn fill_template(state: State<AppState>, request: FillTemplateRequest) -> Re
     let b64 = general_purpose::STANDARD.encode(&filled);
 
     Ok(serde_json::json!({ "docx_base64": b64 }).to_string())
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BatchFillFromCsvRequest {
+    pub template_id: String,
+    pub csv: String,
+    pub output_dir: String,
+    pub formats: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BatchGeneratedFile {
+    pub row: usize,
+    pub filename: String,
+    pub path: String,
+    pub sha256: String,
+    pub status: String,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BatchFillResult {
+    pub generated: Vec<BatchGeneratedFile>,
+    pub warnings: Vec<String>,
+    pub errors: Vec<String>,
+}
+
+#[tauri::command]
+pub fn batch_fill_from_csv(
+    state: State<AppState>,
+    request: BatchFillFromCsvRequest,
+) -> Result<String, String> {
+    let db = state.db.lock().map_err(|e| format!("DB lock: {e}"))?;
+    authorize(get_current_user_role(&db)?, Action::FillTemplate).map_err(|e| e.to_string())?;
+
+    let (_record, template_bytes) =
+        template_store::load_template_file(&db, &request.template_id).map_err(|e| e.to_string())?;
+
+    let mut reader = csv::Reader::from_reader(request.csv.as_bytes());
+    let headers: Vec<String> = reader
+        .headers()
+        .map_err(|e| format!("CSV header parse: {e}"))?
+        .iter()
+        .map(|h| h.trim().to_string())
+        .collect();
+
+    let output_filename_idx = headers.iter().position(|h| h == "output_filename");
+    let field_headers: Vec<String> = headers
+        .iter()
+        .filter(|h| **h != "output_filename")
+        .cloned()
+        .collect();
+
+    std::fs::create_dir_all(&request.output_dir)
+        .map_err(|e| format!("Create output dir: {e}"))?;
+
+    let mut generated = Vec::new();
+    let mut warnings = Vec::new();
+    let mut errors = Vec::new();
+    let mut row_index = 0usize;
+
+    for result in reader.records() {
+        row_index += 1;
+        let record = match result {
+            Ok(r) => r,
+            Err(e) => {
+                errors.push(format!("Row {row_index}: CSV parse error: {e}"));
+                continue;
+            }
+        };
+
+        let mut values = HashMap::new();
+        for (i, header) in field_headers.iter().enumerate() {
+            if let Some(value) = record.get(i) {
+                values.insert(header.clone(), value.to_string());
+            }
+        }
+
+        let filename = if let Some(idx) = output_filename_idx {
+            if let Some(value) = record.get(idx) {
+                let trimmed = value.trim();
+                if trimmed.is_empty() {
+                    format!("{}_row_{}.docx", request.template_id, row_index)
+                } else {
+                    format!("{trimmed}.docx")
+                }
+            } else {
+                format!("{}_row_{}.docx", request.template_id, row_index)
+            }
+        } else {
+            format!("{}_row_{}.docx", request.template_id, row_index)
+        };
+
+        let filled = match fill_document(&template_bytes, &values, true) {
+            Ok(b) => b,
+            Err(e) => {
+                errors.push(format!("Row {row_index}: fill error: {e}"));
+                continue;
+            }
+        };
+
+        let docx_path = std::path::PathBuf::from(&request.output_dir).join(&filename);
+        let sha256 = {
+            let mut hasher = Sha256::new();
+            hasher.update(&filled);
+            let result = hasher.finalize();
+            result.iter().map(|b| format!("{b:02x}")).collect()
+        };
+
+        if let Err(e) = std::fs::write(&docx_path, &filled) {
+            errors.push(format!("Row {row_index}: write error: {e}"));
+            continue;
+        }
+
+        let gen = BatchGeneratedFile {
+            row: row_index,
+            filename: filename.clone(),
+            path: docx_path.to_string_lossy().to_string(),
+            sha256,
+            status: "success".to_string(),
+            error: None,
+        };
+
+        if request.formats.contains(&"pdf".to_string()) {
+            match export_pdf_from_docx(&filled) {
+                Ok(pdf_bytes) => {
+                    let pdf_filename = filename.replace(".docx", ".pdf");
+                    let pdf_path = std::path::PathBuf::from(&request.output_dir).join(&pdf_filename);
+                    if let Err(e) = std::fs::write(&pdf_path, &pdf_bytes) {
+                        warnings.push(format!("Row {row_index}: PDF write error: {e}"));
+                    } else {
+                        warnings.push(format!("Row {row_index}: PDF exported to {}", pdf_path.display()));
+                    }
+                }
+                Err(_) => {
+                    warnings.push(format!("Row {row_index}: PDF export failed (LibreOffice may be missing)"));
+                }
+            }
+        }
+
+        generated.push(gen);
+    }
+
+    let result = BatchFillResult {
+        generated,
+        warnings,
+        errors,
+    };
+
+    serde_json::to_string(&result).map_err(|e| format!("Serialize: {e}"))
 }
 
 #[tauri::command]
@@ -403,7 +654,7 @@ fn find_soffice() -> Option<String> {
     None
 }
 
-// ── Database backup / restore ────────────────────────────────────────────────
+// â”€â”€ Database backup / restore â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /// Copies the active SQLite database file to a user-chosen backup location.
 #[tauri::command]
@@ -425,28 +676,28 @@ pub fn backup_database(state: State<AppState>, target_path: String) -> Result<()
 /// Replaces the active database with a previously created backup, then re-opens it.
 #[tauri::command]
 pub fn restore_database(state: State<AppState>, source_path: String) -> Result<(), String> {
-    let db_path = get_db_path();
+    // RBAC: Admin only — check FIRST using the current (legitimate) DB.
+    {
+        let db = state.db.lock().map_err(|e| e.to_string())?;
+        authorize(get_current_user_role(&db)?, Action::RestoreDatabase)
+            .map_err(|e| e.to_string())?;
+    } // release lock before I/O
+
     if !std::path::Path::new(&source_path).exists() {
         return Err("Source backup file not found".to_string());
     }
 
-    // Validate that source is a valid SQLite file
-    if std::fs::read_to_string(&source_path)
-        .map(|content| content.starts_with("SQLite"))
-        .unwrap_or(false)
-    {
-        return Err("Invalid SQLite backup file".to_string());
+    // Validate SQLite magic bytes (first 6 bytes = "SQLite").
+    let header = std::fs::read(&source_path)
+        .map_err(|e| format!("Cannot read backup file: {e}"))?;
+    if !header.starts_with(b"SQLite") {
+        return Err("Invalid SQLite backup file (bad magic bytes)".to_string());
     }
 
+    let db_path = get_db_path();
     std::fs::copy(&source_path, &db_path).map_err(|e| format!("Restore failed: {e}"))?;
     let new_conn = init_db().map_err(|e| format!("Re-init failed: {e}"))?;
     *state.db.lock().map_err(|e| e.to_string())? = new_conn;
-
-    let db = state.db.lock().map_err(|e| e.to_string())?;
-
-    // RBAC: Admin only
-    authorize(get_current_user_role(&db)?, Action::RestoreDatabase)
-        .map_err(|e| e.to_string())?;
 
     Ok(())
 }
@@ -454,21 +705,22 @@ pub fn restore_database(state: State<AppState>, source_path: String) -> Result<(
 /// Deletes the active database (dangerous operation).
 #[tauri::command]
 pub fn delete_database(state: State<AppState>) -> Result<(), String> {
+    // RBAC: Admin only — check FIRST before any destructive I/O.
+    {
+        let db = state.db.lock().map_err(|e| e.to_string())?;
+        authorize(get_current_user_role(&db)?, Action::DeleteDatabase)
+            .map_err(|e| e.to_string())?;
+    } // release lock before file deletion
+
     let db_path = get_db_path();
     if db_path.exists() {
         std::fs::remove_file(&db_path).map_err(|e| format!("Delete failed: {e}"))?;
     }
 
-    let db = state.db.lock().map_err(|e| e.to_string())?;
-
-    // RBAC: Admin only
-    authorize(get_current_user_role(&db)?, Action::DeleteDatabase)
-        .map_err(|e| e.to_string())?;
-
     Ok(())
 }
 
-// ── Template Bundles ──────────────────────────────────────────────────────────
+// â”€â”€ Template Bundles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateBundleRequest {
@@ -556,7 +808,7 @@ pub fn remove_template_from_bundle_cmd(
         .map_err(|e| format!("Remove from bundle failed: {e}"))
 }
 
-// ── Bug Book (Admin Console crash/error log) ──────────────────────────────────
+// â”€â”€ Bug Book (Admin Console crash/error log) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -826,6 +1078,36 @@ pub fn set_user_role(state: State<AppState>, role: String) -> Result<String, Str
     let new_role = role.parse().map_err(|e| format!("Invalid role: {e}"))?;
     set_current_user_role(&db, new_role).map_err(|e| e.to_string())?;
 
+    Ok(serde_json::json!({ "success": true }).to_string())
+}
+
+#[tauri::command]
+pub fn get_telemetry_consent(state: State<AppState>) -> Result<String, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let consent = crate::services::telemetry::TelemetryService::get_consent(&db)
+        .map_err(|e| e.to_string())?;
+    serde_json::to_string(&consent).map_err(|e| e.to_string())
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SetTelemetryConsentRequest {
+    pub opt_in: bool,
+    pub crash_reports: bool,
+}
+
+#[tauri::command]
+pub fn set_telemetry_consent(
+    state: State<AppState>,
+    request: SetTelemetryConsentRequest,
+) -> Result<String, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    crate::services::telemetry::TelemetryService::set_consent(
+        &db,
+        request.opt_in,
+        request.crash_reports,
+    )
+    .map_err(|e| e.to_string())?;
     Ok(serde_json::json!({ "success": true }).to_string())
 }
 

@@ -164,6 +164,7 @@ pub fn tag_document(
 pub fn fill_document(
     template_bytes: &[u8],
     values: &HashMap<String, String>,
+    replace_all: bool,
 ) -> Result<Vec<u8>, DocForgeError> {
     validate_docx(template_bytes)?;
 
@@ -185,10 +186,17 @@ pub fn fill_document(
         let mut result = text.to_string();
         for (tag_name, val) in values {
             let placeholder = format!("{{{{{}}}}}", tag_name);
-            if result.contains(&placeholder) {
+                    if result.contains(&placeholder) {
+                if replace_all {
                 result = result.replace(&placeholder, val);
-            }
-        }
+    } else {
+      // Replace only the first occurrence
+      if let Some(idx) = result.find(&placeholder) {
+        result.replace_range(idx..idx + placeholder.len(), val);
+      }
+    }
+  }
+}
         result
     })?;
 

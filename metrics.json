@@ -1,0 +1,10 @@
+{
+  "llm_calls": 0,
+  "tokens": 0,
+  "repair_attempts": 1,
+  "worker_seconds": 0.0,
+  "test_seconds": 0.0,
+  "index_seconds": 0.0,
+  "files_modified": 0,
+  "tasks_verified": 0
+}

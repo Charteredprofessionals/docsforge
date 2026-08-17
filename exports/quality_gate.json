@@ -1,5 +1,5 @@
 {
-  "status": "passed",
+  "status": "failed",
   "checks": {
     "requirements_verified": {
       "status": "passed",
@@ -12,25 +12,38 @@
       "required": true
     },
     "architecture_approved": {
-      "status": "passed",
-      "detail": "architecture approved (.approved_architecture present)",
+      "status": "failed",
+      "detail": "architecture marker present but no attributable approval record",
       "marker": "D:\\sdlc_studio\\projects\\docsforge\\.approved_architecture",
       "required": true
     },
     "dag_valid": {
       "status": "passed",
-      "detail": "task DAG valid (30 task(s), no cycles)",
+      "detail": "task DAG valid (21 task(s), no cycles)",
       "errors": [],
       "required": true
     },
+    "traceability_coverage": {
+      "status": "skipped",
+      "detail": "traceability.json absent; legacy project, non-blocking",
+      "file": "D:\\sdlc_studio\\projects\\docsforge\\traceability.json",
+      "required": true
+    },
+    "migrations_valid": {
+      "status": "skipped",
+      "detail": "no migrations/ directory; schema not versioned, non-blocking",
+      "required": true
+    },
     "implementation_tests_pass": {
-      "status": "passed",
-      "detail": "unit/implementation suite: 24 passed / 0 failed / 0 error(s) (pytest rc=0)",
+      "status": "failed",
+      "detail": "unit/implementation suite: 0 passed / 0 failed / 2 error(s) (pytest rc=2)",
+      "failures": [],
       "required": true
     },
     "integration_tests_pass": {
-      "status": "passed",
-      "detail": "integration suite (same pytest run): 24 passed / 0 failed / 0 error(s) (pytest rc=0)",
+      "status": "failed",
+      "detail": "integration suite (same pytest run): 0 passed / 0 failed / 2 error(s) (pytest rc=2)",
+      "failures": [],
       "required": true
     },
     "lint": {
@@ -44,14 +57,103 @@
       "required": false
     },
     "security_pass": {
-      "status": "passed",
-      "detail": "no blocking findings (counts: {'critical': 0, 'high': 0, 'medium': 0, 'low': 0})",
+      "status": "failed",
+      "detail": "blocking security findings (counts: {'critical': 0, 'high': 87, 'medium': 39, 'low': 7}): .kilo/node_modules/effect/dist/Config.d.ts:1198 hardcoded_secret, .kilo/node_modules/effect/dist/Config.js:1089 hardcoded_secret, .kilo/node_modules/effect/dist/Redacted.d.ts:114 hardcoded_secret, .kilo/node_modules/effect/dist/Schema.d.ts:4516 hardcoded_password, .kilo/node_modules/effect/dist/Schema.js:3018 hardcoded_password, .kilo/node_modules/effect/dist/Struct.d.ts:314 hardcoded_password, .kilo/node_modules/effect/dist/Struct.d.ts:340 hardcoded_password, .kilo/node_modules/effect/dist/Struct.d.ts:366 hardcoded_password (+79 more)",
       "counts": {
         "critical": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0
+        "high": 87,
+        "medium": 39,
+        "low": 7
       },
+      "blocking": [
+        ".kilo/node_modules/effect/dist/Config.d.ts:1198 hardcoded_secret",
+        ".kilo/node_modules/effect/dist/Config.js:1089 hardcoded_secret",
+        ".kilo/node_modules/effect/dist/Redacted.d.ts:114 hardcoded_secret",
+        ".kilo/node_modules/effect/dist/Schema.d.ts:4516 hardcoded_password",
+        ".kilo/node_modules/effect/dist/Schema.js:3018 hardcoded_password",
+        ".kilo/node_modules/effect/dist/Struct.d.ts:314 hardcoded_password",
+        ".kilo/node_modules/effect/dist/Struct.d.ts:340 hardcoded_password",
+        ".kilo/node_modules/effect/dist/Struct.d.ts:366 hardcoded_password",
+        ".kilo/node_modules/effect/dist/Struct.js:118 hardcoded_password",
+        ".kilo/node_modules/effect/dist/unstable/http/HttpMiddleware.js:137 hardcoded_password",
+        ".kilo/node_modules/effect/dist/unstable/http/HttpRouter.d.ts:525 hardcoded_secret",
+        ".kilo/node_modules/effect/dist/unstable/http/HttpRouter.js:472 hardcoded_secret",
+        ".kilo/node_modules/effect/dist/unstable/http/Url.d.ts:130 hardcoded_password",
+        ".kilo/node_modules/effect/dist/unstable/http/Url.d.ts:153 hardcoded_password",
+        ".kilo/node_modules/effect/dist/unstable/http/Url.d.ts:176 hardcoded_password",
+        ".kilo/node_modules/effect/dist/unstable/http/Url.js:82 hardcoded_password",
+        ".kilo/node_modules/effect/src/Config.ts:1529 hardcoded_secret",
+        ".kilo/node_modules/effect/src/Redacted.ts:122 hardcoded_secret",
+        ".kilo/node_modules/effect/src/Schema.ts:5963 hardcoded_password",
+        ".kilo/node_modules/effect/src/Struct.ts:325 hardcoded_password",
+        ".kilo/node_modules/effect/src/Struct.ts:351 hardcoded_password",
+        ".kilo/node_modules/effect/src/Struct.ts:377 hardcoded_password",
+        ".kilo/node_modules/effect/src/unstable/http/HttpMiddleware.ts:198 hardcoded_password",
+        ".kilo/node_modules/effect/src/unstable/http/HttpRouter.ts:939 hardcoded_secret",
+        ".kilo/node_modules/effect/src/unstable/http/Url.ts:138 hardcoded_password",
+        ".kilo/node_modules/effect/src/unstable/http/Url.ts:161 hardcoded_password",
+        ".kilo/node_modules/effect/src/unstable/http/Url.ts:184 hardcoded_password",
+        ".kilo/node_modules/zod/src/v3/tests/error.test.ts:220 hardcoded_password",
+        ".kilo/node_modules/zod/src/v3/tests/error.test.ts:243 hardcoded_password",
+        ".kilo/node_modules/zod/src/v3/tests/error.test.ts:547 hardcoded_password",
+        ".kilo/node_modules/zod/src/v3/tests/refine.test.ts:40 hardcoded_password",
+        ".kilo/node_modules/zod/src/v3/tests/refine.test.ts:41 hardcoded_password",
+        ".kilo/node_modules/zod/src/v3/tests/refine.test.ts:74 hardcoded_password",
+        ".kilo/node_modules/zod/src/v3/tests/refine.test.ts:75 hardcoded_password",
+        ".kilo/node_modules/zod/src/v3/tests/refine.test.ts:86 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/error.test.ts:285 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/error.test.ts:305 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/error.test.ts:611 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/nested-refine.test.ts:38 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts:66 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts:67 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts:93 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts:94 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts:103 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts:104 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts:174 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts:552 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts:553 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts:576 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts:577 hardcoded_password",
+        ".kilo/node_modules/zod/src/v4/locales/th.ts:69 hardcoded_secret",
+        ".kilo/node_modules/zod/src/v4/locales/ur.ts:69 hardcoded_secret",
+        ".kilo/node_modules/zod/v4/locales/th.js:59 hardcoded_secret",
+        ".kilo/node_modules/zod/v4/locales/ur.js:59 hardcoded_secret",
+        "node_modules/@tauri-apps/api/core.d.ts:117 hardcoded_password",
+        "node_modules/@tauri-apps/api/core.js:191 hardcoded_password",
+        "node_modules/@tauri-apps/api/event.d.ts:119 hardcoded_secret",
+        "node_modules/@tauri-apps/api/event.d.ts:134 hardcoded_secret",
+        "node_modules/@tauri-apps/api/event.js:120 hardcoded_secret",
+        "node_modules/@tauri-apps/api/event.js:140 hardcoded_secret",
+        "node_modules/@tauri-apps/api/webview.d.ts:212 hardcoded_secret",
+        "node_modules/@tauri-apps/api/webview.d.ts:225 hardcoded_secret",
+        "node_modules/@tauri-apps/api/webview.js:252 hardcoded_secret",
+        "node_modules/@tauri-apps/api/webview.js:278 hardcoded_secret",
+        "node_modules/@tauri-apps/api/window.d.ts:263 hardcoded_secret",
+        "node_modules/@tauri-apps/api/window.d.ts:276 hardcoded_secret",
+        "node_modules/@tauri-apps/api/window.js:282 hardcoded_secret",
+        "node_modules/@tauri-apps/api/window.js:308 hardcoded_secret",
+        "node_modules/@types/node/crypto.d.ts:788 hardcoded_password",
+        "node_modules/@types/node/crypto.d.ts:832 hardcoded_password",
+        "node_modules/@types/node/crypto.d.ts:864 hardcoded_password",
+        "node_modules/@types/node/crypto.d.ts:1049 hardcoded_password",
+        "node_modules/@types/node/crypto.d.ts:1092 hardcoded_password",
+        "node_modules/@types/node/crypto.d.ts:1116 hardcoded_password",
+        "node_modules/@types/node/process.d.ts:859 hardcoded_password",
+        "node_modules/@types/node/url.d.ts:575 hardcoded_password",
+        "node_modules/tailwindcss/peers/index.js:33396 hardcoded_password",
+        "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:10821 hardcoded_aws_key",
+        "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:13240 hardcoded_secret",
+        "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:13259 hardcoded_secret",
+        "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:13333 hardcoded_secret",
+        "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:13372 hardcoded_secret",
+        "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:13417 hardcoded_secret",
+        "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:13485 hardcoded_secret",
+        "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:13508 hardcoded_secret",
+        "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:13522 hardcoded_secret",
+        "node_modules/vite/dist/node/chunks/dep-DWMUTS1A.js:1781 hardcoded_aws_key"
+      ],
       "required": true
     },
     "openapi_valid": {
@@ -77,8 +179,8 @@
     },
     "distribution_valid": {
       "status": "passed",
-      "detail": "docsforge-2.0.0.tar.gz: 113 member(s), no forbidden paths, src/ and requirements.txt present",
-      "tarball": "docsforge-2.0.0.tar.gz",
+      "detail": "docsforge-1.0.0.tar.gz: 113 member(s), no forbidden paths, src/ and requirements.txt present",
+      "tarball": "docsforge-1.0.0.tar.gz",
       "members": 113,
       "forbidden": [],
       "forbidden_count": 0,
@@ -110,13 +212,13 @@
   "results": {
     "tests": {
       "tool": "pytest",
-      "passed": 24,
+      "passed": 0,
       "failed": 0,
-      "errors": 0,
-      "returncode": 0,
-      "ok": true,
+      "errors": 2,
+      "returncode": 2,
+      "ok": false,
       "failures": [],
-      "stdout": "........................                                                 [100%]\n24 passed in 0.96s\n",
+      "stdout": "\n=================================== ERRORS ====================================\n___________________ ERROR collecting src-tauri/test_log.txt ___________________\nC:\\Users\\cscha\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\pathlib\\__init__.py:788: in read_text\n    return f.read()\n           ^^^^^^^^\n<frozen codecs>:325: in decode\n    ???\nE   UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte\n________________ ERROR collecting src-tauri/test_log_final.txt ________________\nC:\\Users\\cscha\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\pathlib\\__init__.py:788: in read_text\n    return f.read()\n           ^^^^^^^^\n<frozen codecs>:325: in decode\n    ???\nE   UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte\n=========================== short test summary info ===========================\nERROR src-tauri/test_log.txt - UnicodeDecodeError: 'utf-8' codec can't decode...\nERROR src-tauri/test_log_final.txt - UnicodeDecodeError: 'utf-8' codec can't ...\n!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!\n2 errors in 2.88s\n",
       "stderr": ""
     },
     "lint": {
@@ -136,15 +238,947 @@
       "stderr": "mypy not installed"
     },
     "security": {
-      "passed": true,
-      "blocking": false,
+      "passed": false,
+      "blocking": true,
       "counts": {
         "critical": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0
+        "high": 87,
+        "medium": 39,
+        "low": 7
       },
-      "findings": []
+      "findings": [
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/Config.d.ts",
+          "line": 1198,
+          "snippet": "*     API_KEY: \"sk-1234567890abcdef\""
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/Config.js",
+          "line": 1089,
+          "snippet": "*     API_KEY: \"sk-1234567890abcdef\""
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/Redacted.d.ts",
+          "line": 114,
+          "snippet": "* console.log(rotate({ token: \"secret\" })) // { token: \"secret:rotated\" }"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/Schema.d.ts",
+          "line": 4516,
+          "snippet": "* console.log(String(Schema.decodeUnknownExit(schema)({ password: \"123456\", conf"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/Schema.js",
+          "line": 3018,
+          "snippet": "* console.log(String(Schema.decodeUnknownExit(schema)({ password: \"123456\", conf"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/Struct.d.ts",
+          "line": 314,
+          "snippet": "* const user = { name: \"Alice\", age: 30, password: \"secret\" }"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/Struct.d.ts",
+          "line": 340,
+          "snippet": "* const user = { name: \"Alice\", age: 30, password: \"secret\" }"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/Struct.d.ts",
+          "line": 366,
+          "snippet": "* const user = { name: \"Alice\", age: 30, password: \"secret\" }"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/Struct.js",
+          "line": 118,
+          "snippet": "* const user = { name: \"Alice\", age: 30, password: \"secret\" }"
+        },
+        {
+          "rule": "debug_true",
+          "severity": "low",
+          "file": ".kilo/node_modules/effect/dist/unstable/cli/Param.js",
+          "line": 576,
+          "snippet": "* // --property name=value --property debug=true"
+        },
+        {
+          "rule": "debug_true",
+          "severity": "low",
+          "file": ".kilo/node_modules/effect/dist/unstable/cli/Primitive.d.ts",
+          "line": 430,
+          "snippet": "*   const result3 = yield* Primitive.keyValuePair.parse(\"debug=true\")"
+        },
+        {
+          "rule": "debug_true",
+          "severity": "low",
+          "file": ".kilo/node_modules/effect/dist/unstable/cli/Primitive.js",
+          "line": 450,
+          "snippet": "*   const result3 = yield* Primitive.keyValuePair.parse(\"debug=true\")"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/unstable/http/HttpMiddleware.js",
+          "line": 137,
+          "snippet": "url.value.password = \"REDACTED\";"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/unstable/http/HttpRouter.d.ts",
+          "line": 525,
+          "snippet": "*         token: \"dummy-token\""
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/unstable/http/HttpRouter.js",
+          "line": 472,
+          "snippet": "*         token: \"dummy-token\""
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/unstable/http/Url.d.ts",
+          "line": 130,
+          "snippet": "*   url.password = \"pass\""
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/unstable/http/Url.d.ts",
+          "line": 153,
+          "snippet": "*   url.password = \"pass\""
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/unstable/http/Url.d.ts",
+          "line": 176,
+          "snippet": "*   url.password = \"pass\""
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/dist/unstable/http/Url.js",
+          "line": 82,
+          "snippet": "*   url.password = \"pass\""
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/dist/unstable/persistence/PersistedQueue.js",
+          "line": 225,
+          "snippet": "const requeue = redis.eval(requeueRedis);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/dist/unstable/persistence/PersistedQueue.js",
+          "line": 226,
+          "snippet": "const complete = redis.eval(completeRedis);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/dist/unstable/persistence/PersistedQueue.js",
+          "line": 227,
+          "snippet": "const failed = redis.eval(failedRedis);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/dist/unstable/persistence/PersistedQueue.js",
+          "line": 228,
+          "snippet": "const resetQueue = redis.eval(resetQueueRedis);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/dist/unstable/persistence/PersistedQueue.js",
+          "line": 229,
+          "snippet": "const offer = redis.eval(offerRedis);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/dist/unstable/persistence/PersistedQueue.js",
+          "line": 230,
+          "snippet": "const take = redis.eval(takeRedis);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/dist/unstable/persistence/PersistedQueue.js",
+          "line": 231,
+          "snippet": "const expireAll = redis.eval(expireAllRedis);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/dist/unstable/persistence/Persistence.js",
+          "line": 528,
+          "snippet": "const setMany = redis.eval(setManyRedis);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/dist/unstable/persistence/RateLimiter.js",
+          "line": 395,
+          "snippet": "const fixedWindow = redis.eval(fixedWindowScript);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/dist/unstable/persistence/RateLimiter.js",
+          "line": 396,
+          "snippet": "const tokenBucket = redis.eval(tokenBucketScript);"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/src/Config.ts",
+          "line": 1529,
+          "snippet": "*     API_KEY: \"sk-1234567890abcdef\""
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/src/Redacted.ts",
+          "line": 122,
+          "snippet": "* console.log(rotate({ token: \"secret\" })) // { token: \"secret:rotated\" }"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/src/Schema.ts",
+          "line": 5963,
+          "snippet": "* console.log(String(Schema.decodeUnknownExit(schema)({ password: \"123456\", conf"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/src/Struct.ts",
+          "line": 325,
+          "snippet": "* const user = { name: \"Alice\", age: 30, password: \"secret\" }"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/src/Struct.ts",
+          "line": 351,
+          "snippet": "* const user = { name: \"Alice\", age: 30, password: \"secret\" }"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/src/Struct.ts",
+          "line": 377,
+          "snippet": "* const user = { name: \"Alice\", age: 30, password: \"secret\" }"
+        },
+        {
+          "rule": "debug_true",
+          "severity": "low",
+          "file": ".kilo/node_modules/effect/src/unstable/cli/Param.ts",
+          "line": 895,
+          "snippet": "* // --property name=value --property debug=true"
+        },
+        {
+          "rule": "debug_true",
+          "severity": "low",
+          "file": ".kilo/node_modules/effect/src/unstable/cli/Primitive.ts",
+          "line": 649,
+          "snippet": "*   const result3 = yield* Primitive.keyValuePair.parse(\"debug=true\")"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/src/unstable/http/HttpMiddleware.ts",
+          "line": 198,
+          "snippet": "url.value.password = \"REDACTED\""
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/src/unstable/http/HttpRouter.ts",
+          "line": 939,
+          "snippet": "*         token: \"dummy-token\""
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/src/unstable/http/Url.ts",
+          "line": 138,
+          "snippet": "*   url.password = \"pass\""
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/src/unstable/http/Url.ts",
+          "line": 161,
+          "snippet": "*   url.password = \"pass\""
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/effect/src/unstable/http/Url.ts",
+          "line": 184,
+          "snippet": "*   url.password = \"pass\""
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/src/unstable/persistence/PersistedQueue.ts",
+          "line": 409,
+          "snippet": "const requeue = redis.eval(requeueRedis)"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/src/unstable/persistence/PersistedQueue.ts",
+          "line": 410,
+          "snippet": "const complete = redis.eval(completeRedis)"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/src/unstable/persistence/PersistedQueue.ts",
+          "line": 411,
+          "snippet": "const failed = redis.eval(failedRedis)"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/src/unstable/persistence/PersistedQueue.ts",
+          "line": 412,
+          "snippet": "const resetQueue = redis.eval(resetQueueRedis)"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/src/unstable/persistence/PersistedQueue.ts",
+          "line": 413,
+          "snippet": "const offer = redis.eval(offerRedis)"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/src/unstable/persistence/PersistedQueue.ts",
+          "line": 414,
+          "snippet": "const take = redis.eval(takeRedis)"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/src/unstable/persistence/PersistedQueue.ts",
+          "line": 415,
+          "snippet": "const expireAll = redis.eval(expireAllRedis)"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/src/unstable/persistence/Persistence.ts",
+          "line": 762,
+          "snippet": "const setMany = redis.eval(setManyRedis)"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/src/unstable/persistence/RateLimiter.ts",
+          "line": 597,
+          "snippet": "const fixedWindow = redis.eval(fixedWindowScript)"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": ".kilo/node_modules/effect/src/unstable/persistence/RateLimiter.ts",
+          "line": 598,
+          "snippet": "const tokenBucket = redis.eval(tokenBucketScript)"
+        },
+        {
+          "rule": "todo_authr",
+          "severity": "low",
+          "file": ".kilo/node_modules/toml/README.md",
+          "line": 89,
+          "snippet": "#### Temporal Support"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v3/tests/error.test.ts",
+          "line": 220,
+          "snippet": "password: \"peanuts\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v3/tests/error.test.ts",
+          "line": 243,
+          "snippet": "password: \"qwer\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v3/tests/error.test.ts",
+          "line": 547,
+          "snippet": "//   const result = user.safeParse({ password: \"asdf\", confirm: \"qwer\" });"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v3/tests/refine.test.ts",
+          "line": 40,
+          "snippet": "password: \"aaaaaaaa\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v3/tests/refine.test.ts",
+          "line": 41,
+          "snippet": "confirmPassword: \"bbbbbbbb\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v3/tests/refine.test.ts",
+          "line": 74,
+          "snippet": "password: \"password\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v3/tests/refine.test.ts",
+          "line": 75,
+          "snippet": "confirmPassword: \"password\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v3/tests/refine.test.ts",
+          "line": 86,
+          "snippet": ".spa({ password: \"asdf\", confirm: \"qewr\" });"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/error.test.ts",
+          "line": 285,
+          "snippet": "password: \"peanuts\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/error.test.ts",
+          "line": 305,
+          "snippet": "password: \"qwer\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/error.test.ts",
+          "line": 611,
+          "snippet": "const result = user.safeParse({ password: \"asdf\", confirm: \"qwer\" });"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/nested-refine.test.ts",
+          "line": 38,
+          "snippet": "password: \"bar\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts",
+          "line": 66,
+          "snippet": "password: \"aaaaaaaa\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts",
+          "line": 67,
+          "snippet": "confirmPassword: \"bbbbbbbb\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts",
+          "line": 93,
+          "snippet": "password: \"password\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts",
+          "line": 94,
+          "snippet": "confirmPassword: \"password\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts",
+          "line": 103,
+          "snippet": "password: \"password\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts",
+          "line": 104,
+          "snippet": "confirmPassword: \"different\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts",
+          "line": 174,
+          "snippet": ".safeParse({ password: \"asdf\", confirm: \"qewr\" });"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts",
+          "line": 552,
+          "snippet": "password: \"asdf\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts",
+          "line": 553,
+          "snippet": "confirmPassword: \"asdfg\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts",
+          "line": 576,
+          "snippet": "password: \"asdf\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/classic/tests/refine.test.ts",
+          "line": 577,
+          "snippet": "confirmPassword: \"asdfg\","
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/locales/th.ts",
+          "line": 69,
+          "snippet": "jwt: \"โทเคน JWT\","
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/src/v4/locales/ur.ts",
+          "line": 69,
+          "snippet": "jwt: \"جے ڈبلیو ٹی\","
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/v4/locales/th.js",
+          "line": 59,
+          "snippet": "jwt: \"โทเคน JWT\","
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": ".kilo/node_modules/zod/v4/locales/ur.js",
+          "line": 59,
+          "snippet": "jwt: \"جے ڈبلیو ٹی\","
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/.vite/deps/mammoth.js",
+          "line": 3326,
+          "snippet": "eval(obj);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/@tauri-apps/api/core.d.ts",
+          "line": 54,
+          "snippet": "* The backend uses the identifier to `eval()` the callback."
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/core.d.ts",
+          "line": 117,
+          "snippet": "* await invoke('login', { user: 'tauri', password: 'poiwe3h4r5ip3yrhtew9ty' });"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/@tauri-apps/api/core.js",
+          "line": 63,
+          "snippet": "* The backend uses the identifier to `eval()` the callback."
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/core.js",
+          "line": 191,
+          "snippet": "* await invoke('login', { user: 'tauri', password: 'poiwe3h4r5ip3yrhtew9ty' });"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/event.d.ts",
+          "line": 119,
+          "snippet": "* await emit('frontend-loaded', { loggedIn: true, token: 'authToken' });"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/event.d.ts",
+          "line": 134,
+          "snippet": "* await emitTo('main', 'frontend-loaded', { loggedIn: true, token: 'authToken' }"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/event.js",
+          "line": 120,
+          "snippet": "* await emit('frontend-loaded', { loggedIn: true, token: 'authToken' });"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/event.js",
+          "line": 140,
+          "snippet": "* await emitTo('main', 'frontend-loaded', { loggedIn: true, token: 'authToken' }"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/webview.d.ts",
+          "line": 212,
+          "snippet": "* await getCurrentWebview().emit('webview-loaded', { loggedIn: true, token: 'aut"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/webview.d.ts",
+          "line": 225,
+          "snippet": "* await getCurrentWebview().emitTo('main', 'webview-loaded', { loggedIn: true, t"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/webview.js",
+          "line": 252,
+          "snippet": "* await getCurrentWebview().emit('webview-loaded', { loggedIn: true, token: 'aut"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/webview.js",
+          "line": 278,
+          "snippet": "* await getCurrentWebview().emitTo('main', 'webview-loaded', { loggedIn: true, t"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/window.d.ts",
+          "line": 263,
+          "snippet": "* await getCurrentWindow().emit('window-loaded', { loggedIn: true, token: 'authT"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/window.d.ts",
+          "line": 276,
+          "snippet": "* await getCurrentWindow().emit('main', 'window-loaded', { loggedIn: true, token"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/window.js",
+          "line": 282,
+          "snippet": "* await getCurrentWindow().emit('window-loaded', { loggedIn: true, token: 'authT"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/@tauri-apps/api/window.js",
+          "line": 308,
+          "snippet": "* await getCurrentWindow().emit('main', 'window-loaded', { loggedIn: true, token"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": "node_modules/@types/node/crypto.d.ts",
+          "line": 788,
+          "snippet": "* const password = 'Password used to generate key';"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": "node_modules/@types/node/crypto.d.ts",
+          "line": 832,
+          "snippet": "* const password = 'Password used to generate key';"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": "node_modules/@types/node/crypto.d.ts",
+          "line": 864,
+          "snippet": "* const password = 'Password used to generate key';"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": "node_modules/@types/node/crypto.d.ts",
+          "line": 1049,
+          "snippet": "* const password = 'Password used to generate key';"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": "node_modules/@types/node/crypto.d.ts",
+          "line": 1092,
+          "snippet": "* const password = 'Password used to generate key';"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": "node_modules/@types/node/crypto.d.ts",
+          "line": 1116,
+          "snippet": "* const password = 'Password used to generate key';"
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": "node_modules/@types/node/process.d.ts",
+          "line": 859,
+          "snippet": "*   PWD: '/Users/maciej',"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/@types/node/repl.d.ts",
+          "line": 40,
+          "snippet": "* **Default:** an async wrapper for the JavaScript `eval()` function. An `eval` "
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/@types/node/repl.d.ts",
+          "line": 201,
+          "snippet": "* for the JavaScript `eval()` function."
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": "node_modules/@types/node/url.d.ts",
+          "line": 575,
+          "snippet": "* myURL.password = '123';"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/@types/node/vm.d.ts",
+          "line": 536,
+          "snippet": "* the JavaScript [`eval()`](https://developer.mozilla.org/en-US/docs/Web/JavaScr"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/@types/node/vm.d.ts",
+          "line": 546,
+          "snippet": "* const evalResult = eval('localVar = \"eval\";');"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/@types/node/vm.d.ts",
+          "line": 552,
+          "snippet": "* [`eval()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/G"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/@types/node/vm.d.ts",
+          "line": 553,
+          "snippet": "* local scope, so the value `localVar` is changed. In this way `vm.runInThisCont"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/bluebird/js/browser/bluebird.core.js",
+          "line": 3558,
+          "snippet": "eval(obj);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/bluebird/js/browser/bluebird.js",
+          "line": 5400,
+          "snippet": "eval(obj);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/bluebird/js/release/util.js",
+          "line": 201,
+          "snippet": "eval(obj);"
+        },
+        {
+          "rule": "todo_authr",
+          "severity": "low",
+          "file": "node_modules/js-tokens/README.md",
+          "line": 123,
+          "snippet": "### Template string interpolation ###"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/mammoth/mammoth.browser.js",
+          "line": 13126,
+          "snippet": "eval(obj);"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/rollup/dist/shared/loadConfigFile.js",
+          "line": 109,
+          "snippet": "EVAL(warnings) {"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/sucrase/dist/esm/transformers/RootTransformer.js",
+          "line": 287,
+          "snippet": "\"__reactstandin__regenerateByEval(key, code) {this[key] = eval(code);}\","
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/sucrase/dist/transformers/RootTransformer.js",
+          "line": 287,
+          "snippet": "\"__reactstandin__regenerateByEval(key, code) {this[key] = eval(code);}\","
+        },
+        {
+          "rule": "hardcoded_password",
+          "severity": "high",
+          "file": "node_modules/tailwindcss/peers/index.js",
+          "line": 33396,
+          "snippet": "password: \"[type=password]\","
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/thenify/History.md",
+          "line": 6,
+          "snippet": "* [[`0d94a24`](http://github.com/thenables/thenify/commit/0d94a24eb933bc835d568f"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/typescript/lib/lib.es5.d.ts",
+          "line": 33,
+          "snippet": "declare function eval(x: string): any;"
+        },
+        {
+          "rule": "eval_usage",
+          "severity": "medium",
+          "file": "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js",
+          "line": 9391,
+          "snippet": "var codeToDataUrl = (code) => `data:application/javascript,${encodeURIComponent("
+        },
+        {
+          "rule": "hardcoded_aws_key",
+          "severity": "high",
+          "file": "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js",
+          "line": 10821,
+          "snippet": "var ImportType;!function(A){A[A.Static=1]=\"Static\",A[A.Dynamic=2]=\"Dynamic\",A[A."
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js",
+          "line": 13240,
+          "snippet": "nextLastSignificantToken = \"?NonExpressionParenEnd\";"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js",
+          "line": 13259,
+          "snippet": "lastSignificantToken = \"?InterpolationInTemplate\";"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js",
+          "line": 13333,
+          "snippet": "nextLastSignificantToken = \"?NonExpressionParenKeyword\";"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js",
+          "line": 13372,
+          "snippet": "lastSignificantToken = \"?InterpolationInTemplate\";"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js",
+          "line": 13417,
+          "snippet": "nextLastSignificantToken = \"?InterpolationInJSX\";"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js",
+          "line": 13485,
+          "snippet": "lastSignificantToken = \"?InterpolationInJSX\";"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js",
+          "line": 13508,
+          "snippet": "lastSignificantToken = \"?NoLineTerminatorHere\";"
+        },
+        {
+          "rule": "hardcoded_secret",
+          "severity": "high",
+          "file": "node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js",
+          "line": 13522,
+          "snippet": "lastSignificantToken = \"?NoLineTerminatorHere\";"
+        },
+        {
+          "rule": "hardcoded_aws_key",
+          "severity": "high",
+          "file": "node_modules/vite/dist/node/chunks/dep-DWMUTS1A.js",
+          "line": 1781,
+          "snippet": "\"AGFzbQEAAAABCAJgAX8AYAAAAwUEAQAAAAUDAQABBhoFfwFBAAt/AUEAC38BQQALfwFBAAt/AUEACwc"
+        }
+      ]
     },
     "openapi_routes": {
       "ok": true,
@@ -250,8 +1284,8 @@
     },
     "distribution": {
       "status": "passed",
-      "detail": "docsforge-2.0.0.tar.gz: 113 member(s), no forbidden paths, src/ and requirements.txt present",
-      "tarball": "docsforge-2.0.0.tar.gz",
+      "detail": "docsforge-1.0.0.tar.gz: 113 member(s), no forbidden paths, src/ and requirements.txt present",
+      "tarball": "docsforge-1.0.0.tar.gz",
       "members": 113,
       "forbidden": [],
       "forbidden_count": 0,
@@ -280,17 +1314,24 @@
       "required": true
     },
     "summary": {
-      "blocking_failures": [],
+      "blocking_failures": [
+        "architecture_approved",
+        "implementation_tests_pass",
+        "integration_tests_pass",
+        "security_pass"
+      ],
       "counts": {
-        "passed": 9,
-        "failed": 0,
-        "skipped": 6,
+        "passed": 5,
+        "failed": 4,
+        "skipped": 8,
         "unavailable": 1
       },
       "required_checks": [
         "requirements_verified",
         "architecture_approved",
         "dag_valid",
+        "traceability_coverage",
+        "migrations_valid",
         "implementation_tests_pass",
         "integration_tests_pass",
         "security_pass",

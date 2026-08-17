@@ -37,6 +37,7 @@ base64 = "0.22"
 quick-xml = "0.37"
 sha2 = "0.10"
 chrono = "0.4"
+csv = "1"
 # Native PDF export (no LibreOffice dependency) — adopted from templatebuilder
 printpdf = "0.7"
 docx-rs = "0.4"

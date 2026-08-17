@@ -16,7 +16,9 @@ use crate::core::error::DocForgeError;
 use crate::core::field_mapping::extraction::find_unmapped_placeholders;
 use crate::core::field_mapping::registry::list_fields;
 use crate::core::field_mapping::schema::validate_value;
-use crate::core::matter::matter::{get_matter, Matter};
+use crate::core::matter::matter::get_matter;
+#[cfg(test)]
+use crate::core::matter::matter::Matter;
 use crate::core::matter::matter_values::list_matter_values;
 
 /// Which validation level produced an issue.
@@ -207,9 +209,8 @@ fn count_invalid_mappings(conn: &Connection, bundle_version_id: &str) -> Result<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::field_mapping::registry::{create_field, create_field_group};
+    use crate::core::field_mapping::registry::create_field;
     use crate::core::field_mapping::schema::FieldType;
-    use crate::core::field_mapping::groups::create_group;
     use crate::core::matter::matter::create_matter;
     use crate::core::matter::matter_values::set_matter_value;
     use crate::schema::init_memory_db;

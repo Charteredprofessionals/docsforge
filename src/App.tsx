@@ -7,6 +7,7 @@ import AdminConsole from "./components/AdminConsole";
 import Bundles from "./components/Bundles";
 import ConsentDialog from "./components/ConsentDialog";
 import { installErrorCapture } from "./lib/errorCapture";
+import { setTelemetryConsent } from "./lib/ipc";
 import { FileText, Plus, List, Shield, Settings, Layers } from "lucide-react";
 
 export default function App() {
@@ -113,13 +114,18 @@ export default function App() {
           <TemplateFiller templateId={selectedTemplateId} onBack={handleBackToList} />
         )}
         {view === "admin" && <AdminConsole />}
-        {view === "bundles" && <Bundles />}
+        {view === "bundles" && <Bundles onUseTemplate={handleUseTemplate} />}
       </main>
 
       {/* Privacy Consent Modal */}
       {showConsentModal && (
         <ConsentDialog
-          onConfirm={(optIn, crashReports) => {
+          onConfirm={async (optIn, crashReports) => {
+            try {
+              await setTelemetryConsent({ optIn, crashReports });
+            } catch (err) {
+              console.error("Failed to save telemetry consent:", err);
+            }
             setShowConsentModal(false);
           }}
         />
