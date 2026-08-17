@@ -39,14 +39,51 @@ jobs:
         working-directory: projects/docsforge/src-tauri
         run: cargo build --release --features cli --features onprem
 
-      # Use `tauri build` (not plain cargo build) so the GUI binary embeds the
-      # frontend dist/ — plain cargo build produces a webview that cannot load
-      # the UI (blank screen / localhost devUrl fallback).
-      - name: Build GUI desktop app (embeds frontend into docforge.exe)
-        working-directory: projects/docsforge
-        run: npm run build:tauri -- --no-bundle
+      # Always provide a code-signing certificate for the Windows bundles.
+      # - If repo secrets WINDOWS_CERTIFICATE (base64 PFX) + WINDOWS_CERTIFICATE_PASSWORD
+      #   are set, they are used (production / trusted signing).
+      # - Otherwise a self-signed cert is generated so the MSIX — which Windows REQUIRES to be
+      #   signed — still builds in CI for testing. Self-signed packages are only installable on
+      #   machines that trust the generated cert.
+      # Tauri reads WINDOWS_CERTIFICATE / WINDOWS_CERTIFICATE_PASSWORD to sign msi/nsis/msix.
+      - name: Prepare code-signing certificate
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE_SECRET: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD_SECRET: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          $certDir = "certificate"
+          New-Item -ItemType Directory -Path $certDir -Force | Out-Null
+          if ($env:WINDOWS_CERTIFICATE_SECRET) {
+            Write-Host "Using provided WINDOWS_CERTIFICATE secret"
+            Set-Content -Path "$certDir/tempCert.txt" -Value $env:WINDOWS_CERTIFICATE_SECRET
+            certutil -decode "$certDir/tempCert.txt" "$certDir/certificate.pfx" | Out-Null
+            Remove-Item -Path "$certDir/tempCert.txt"
+            Import-PfxCertificate -FilePath "$certDir/certificate.pfx" -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD_SECRET -Force -AsPlainText) | Out-Null
+            Add-Content -Path $env:GITHUB_ENV -Value "WINDOWS_CERTIFICATE=$env:WINDOWS_CERTIFICATE_SECRET"
+            Add-Content -Path $env:GITHUB_ENV -Value "WINDOWS_CERTIFICATE_PASSWORD=$env:WINDOWS_CERTIFICATE_PASSWORD_SECRET"
+          } else {
+            Write-Host "No WINDOWS_CERTIFICATE secret - generating self-signed cert for CI (dev/test builds)"
+            $password = ConvertTo-SecureString -String "DocForgeCI" -Force -AsPlainText
+            $cert = New-SelfSignedCertificate -Type Custom -KeyUsage DigitalSignature `
+              -Subject "CN=DocForge" `
+              -CertStoreLocation "Cert:\CurrentUser\My" `
+              -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3") `
+              -FriendlyName "DocForge CI Dev Cert"
+            $pfx = "$certDir/certificate.pfx"
+            Export-PfxCertificate -Cert $cert -FilePath $pfx -Password $password | Out-Null
+            $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($pfx))
+            Add-Content -Path $env:GITHUB_ENV -Value "WINDOWS_CERTIFICATE=$b64"
+            Add-Content -Path $env:GITHUB_ENV -Value "WINDOWS_CERTIFICATE_PASSWORD=DocForgeCI"
+          }
 
-      - name: Build Inno Setup installer
+      # `tauri build` (not plain cargo build) embeds the frontend dist/ into docforge.exe and
+      # produces the MSI, NSIS and MSIX bundles. MSIX REQUIRES a signature (provided above).
+      - name: Build GUI app + Windows bundles (msi, nsis, msix)
+        working-directory: projects/docsforge
+        run: npm run build:tauri -- --bundles msi,nsis,msix
+
+      - name: Build Inno Setup installer (from the embedded docforge.exe)
         run: |
           $iss = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
           if (-not (Test-Path $iss)) {
@@ -59,6 +96,27 @@ jobs:
         with:
           name: DocForge-InnoSetup
           path: projects/docsforge/exports/windows/DocForge_*_x64-setup.exe
+          retention-days: 30
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DocForge-MSI
+          path: projects/docsforge/src-tauri/target/release/bundle/msi/*.msi
+          retention-days: 30
+
+      - name: Upload NSIS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DocForge-NSIS
+          path: projects/docsforge/src-tauri/target/release/bundle/nsis/*-setup.exe
+          retention-days: 30
+
+      - name: Upload MSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DocForge-MSIX
+          path: projects/docsforge/src-tauri/target/release/bundle/msix/*.msix
           retention-days: 30
 
       - name: Upload release binary artifact
@@ -88,6 +146,9 @@ jobs:
         with:
           files: |
             projects/docsforge/exports/windows/DocForge_*_x64-setup.exe
+            projects/docsforge/src-tauri/target/release/bundle/msi/*.msi
+            projects/docsforge/src-tauri/target/release/bundle/nsis/*-setup.exe
+            projects/docsforge/src-tauri/target/release/bundle/msix/*.msix
             projects/docsforge/src-tauri/target/release/docforge-cli.exe
             projects/docsforge/src-tauri/target/release/docforge-onprem.exe
           draft: false

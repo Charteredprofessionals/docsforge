@@ -293,6 +293,17 @@ Artifacts land in `src-tauri/target/release/bundle/`:
 - `msi/DocForge_2.0.0_x64_en-US.msi`
 - `nsis/DocForge_2.0.0_x64-setup.exe`
 
+> **⚠️ GUI binary must be built with the Tauri CLI.** A bare `cargo build --release` does not
+> embed the frontend, so the app fails at launch with `ERR_CONNECTION_REFUSED` (it expects
+> `http://localhost:5173`). The headless `docforge-cli` / `docforge-onprem` engines below use
+> `cargo build` correctly (no frontend).
+
+The **canonical shipped Windows installer** is built from the embedded binary via Inno Setup:
+```bash
+& "C:\Users\cscha\AppData\Local\Programs\Inno Setup 6\ISCC.exe" installer.iss
+```
+→ `exports/windows/DocForge_2.0.0_x64-setup.exe` (`exports/windows/` is git-ignored).
+
 **Build the optional headless engines** (enterprise/automation)
 ```bash
 # CLI engine

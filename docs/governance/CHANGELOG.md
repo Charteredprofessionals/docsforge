@@ -2,6 +2,8 @@
 
 > Governed by `docs/governance/POST_RELEASE_CHANGE_POLICY.md`.
 > Every post-release change MUST have a CR here before/with the work.
+> **Machine-readable register:** `config.json` → `changeGovernance.crRegister` points to
+> `docs/governance/cr_register.json` (JSON). Keep this markdown table in sync with that file.
 
 ## Register
 

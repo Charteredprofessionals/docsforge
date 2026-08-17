@@ -72,17 +72,39 @@ Key design decisions (see `docs/adr`):
 - (Optional, for PDF export) [LibreOffice](https://www.libreoffice.org/) on `PATH`
 
 ### From source
+
+> **⚠️ Build the GUI binary ONLY through the Tauri CLI.** DocForge is a **Tauri 2** app; the
+> frontend (`dist/`) is embedded into the binary *only* by `tauri build`. A plain
+> `cargo build --release` compiles but does **not** embed the UI, so the launched app falls back
+> to the dev URL `http://localhost:5173` and fails with **`ERR_CONNECTION_REFUSED`**
+> ("localhost refused to connect"). Always use `npm run build:tauri`.
+
 ```bash
 npm install
 npm run build          # type-checks + builds the frontend
-npx tauri build        # compiles the Rust core and produces .exe / .msi / .msix
+npm run build:tauri    # runs npm run build, then tauri build (embeds the frontend)
 ```
 
 Artifacts land in `src-tauri/target/release/bundle/`.
 
-### Installers
-Released packages: `DocForge.msi` (recommended), `DocForge.exe` (NSIS), and
-`DocForge.msix` (enterprise sideload).
+### Installers / Release package
+
+`npm run build:tauri` produces Tauri's own bundles in `src-tauri/target/release/bundle/`:
+- `msi/DocForge_2.0.0_x64_en-US.msi` (Windows Installer)
+- `nsis/DocForge_2.0.0_x64-setup.exe` (NSIS)
+- `msix/DocForge_2.0.0_x64.msix` (MSIX — **requires a code-signing certificate**; built by the
+  GitHub Actions pipeline, which signs with the `WINDOWS_CERTIFICATE` / `WINDOWS_CERTIFICATE_PASSWORD`
+  secrets or a generated self-signed cert for CI testing)
+
+The **canonical shipped Windows installer** is built separately from the embedded binary with
+Inno Setup (`installer.iss`):
+```bash
+& "C:\Users\cscha\AppData\Local\Programs\Inno Setup 6\ISCC.exe" installer.iss
+```
+Output: `exports/windows/DocForge_2.0.0_x64-setup.exe`.
+
+> **Note:** `exports/windows/` and `*.exe` are git-ignored — the installer is a build artifact
+> and is **not** committed to the repo.
 
 ---
 

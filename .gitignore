@@ -22,6 +22,11 @@ exports/*.zip
 *.msi
 *.msix
 
+# Code-signing certificates (never commit; CI generates or uses secrets)
+*.pfx
+*.p12
+certificate/
+
 # Build logs (temporary)
 build_log*.txt
 test_log*.txt
