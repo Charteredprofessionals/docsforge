@@ -3,7 +3,7 @@
   "projectName": "DocForge",
   "currentPhase": "CODING",
   "currentTask": "TASK-121",
-  "status": "released",
+  "status": "blocked",
   "attempt": 1,
   "updatedAt": "2026-08-17T06:30:25Z",
   "startedAt": "2026-08-09T11:34:00Z",
@@ -12,7 +12,7 @@
   "architectureVersion": 1,
   "schemaVersion": 1,
   "codeVersion": 1,
-  "qualityGateStatus": "passed",
+  "qualityGateStatus": "failed",
   "releaseVersion": "2.0.0",
   "approvalGates": {
     "architecture": false,
@@ -76,7 +76,7 @@
   "changeGovernance": {
     "postReleaseRequired": true,
     "policy": "docs/governance/POST_RELEASE_CHANGE_POLICY.md",
-    "crRegister": "docs/governance/CHANGELOG.md",
+    "crRegister": "docs/governance/cr_register.json",
     "verifyOnCi": true,
     "tiers": [
       "standard",
@@ -85,8 +85,7 @@
     ],
     "emergencyRetroSlaHours": 24,
     "postReleaseTaskIds": [
-      "TASK-031",
-      "TASK-032"
+      "TASK-121"
     ]
   },
   "postReleasePhase": "MAINTENANCE",

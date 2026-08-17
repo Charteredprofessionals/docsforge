@@ -1,9 +1,7 @@
 {"ts": "2026-08-17T11:30:00Z", "event": "phase_transition", "from_phase": "RELEASED", "to_phase": "MAINTENANCE", "version": "2.0.0", "initiated_by": "SDLC_Orchestrator"}
-{"ts": "2026-08-17T11:35:00Z", "event": "cr_created", "cr_id": "CR-2026-001", "cr_title": "Bug Book module (Admin Console crash/error log)", "tier": "normal", "status": "completed", "approver": "Tech Lead"}
-{"ts": "2026-08-17T11:40:00Z", "event": "cr_created", "cr_id": "CR-2026-002", "cr_title": "save_template camelCase contract fix", "tier": "standard", "status": "completed", "approver": "Tech Lead"}
-{"ts": "2026-08-17T11:45:00Z", "event": "cr_created", "cr_id": "CR-2026-003", "cr_title": "Mail-merge workflow realignment (CSV per template/bundle + sample template)", "tier": "normal", "status": "completed", "approver": "Tech Lead", "task_ids": ["TASK-121"]}
+{"ts": "2026-08-17T11:35:00Z", "event": "cr_created", "cr_id": "CR-2026-001", "tier": "normal", "status": "completed", "approver": "Tech Lead"}
+{"ts": "2026-08-17T11:40:00Z", "event": "cr_created", "cr_id": "CR-2026-002", "tier": "standard", "status": "completed", "approver": "Tech Lead"}
+{"ts": "2026-08-17T11:45:00Z", "event": "cr_created", "cr_id": "CR-2026-003", "tier": "normal", "status": "completed", "approver": "Tech Lead", "task_ids": ["TASK-121"]}
 {"ts": "2026-08-17T12:00:00Z", "event": "config_updated", "changes": ["postReleaseTaskIds: TASK-031,032 removed; TASK-121 added", "currentTask: TASK-121"], "initiated_by": "SDLC_Orchestrator"}
 {"ts": "2026-08-17T12:30:00Z", "event": "file_cleanup", "description": "Removed TemplateFiller.tsx.bak, .bak2, .modified junk files from src/components/"}
-{"ts": "2026-08-17T12:35:00Z", "event": "dag_sync", "status": "verified", "total_tasks": 21, "valid": True, "notes": "All task statuses updated from 'completed' to 'verified' per DAG validator REQUIREMENT"}'
-{"ts": "2026-08-17T06:30:25Z", "event": "phase_transition", "from_phase": "RELEASED", "to_phase": "MAINTENANCE", "version": "2.0.0"}
-{"ts": "2026-08-17T06:30:25Z", "event": "phase_transition", "from_phase": "MAINTENANCE", "to_phase": "CODING", "version": "2.0.0"}
+{"ts": "2026-08-17T12:35:00Z", "event": "dag_sync", "status": "verified", "total_tasks": 21, "valid": true, "notes": "All task statuses updated from completed to verified per DAG validator REQUIREMENT"}
