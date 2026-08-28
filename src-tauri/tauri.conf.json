@@ -29,20 +29,13 @@
     "active": true,
     "targets": [
       "msi",
-      "nsis",
-      "msix"
+      "nsis"
     ],
     "icon": ["icons/icon.ico"],
     "windows": {
       "nsis": {
         "installerIcon": "icons/icon.ico",
         "sidebarImage": "icons/sidebar.bmp"
-      },
-      "msix": {
-        "displayName": "DocForge",
-        "publisherDisplayName": "DocForge",
-        "identityName": "DocForge.DocForge",
-        "publisher": "CN=DocForge"
       },
       "webviewInstallMode": {
         "type": "downloadBootstrapper"
