@@ -43,8 +43,13 @@
     "Dead code removed (modify.py deleted from components/)"
   ],
   "releaseVersion": "2.0.0",
-  "releaseNotes": "v2.0.0 ships Windows-only. Mac/Linux support coming in v2.0.1 with proper cross-platform encryption.",
-  "distributionFormats": ["MSI", "NSIS"],
+  "releaseNotes": "v2.0.0 ships Windows-only with MSI, NSIS, and MSIX installers. Mac/Linux support coming in v2.0.1 with proper cross-platform encryption.",
+  "distributionFormats": ["MSI", "NSIS", "MSIX"],
+  "ciCd": {
+    "githubActions": true,
+    "workflowPath": ".github/workflows/build.yml",
+    "buildTargets": ["msi", "nsis", "msix"]
+  },
   "approvalGates": {
     "architecture": true,
     "implementation": true,
