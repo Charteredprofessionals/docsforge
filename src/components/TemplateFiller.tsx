@@ -73,11 +73,13 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
   // FIX #11: Pre-flight required field validation
   const validateRequiredFields = useCallback((): boolean => {
     if (!template) return true;
+    
+    // Check ALL placeholders, not just required fields
     const missing = template.fields
-      .filter((f) => f.required && !fieldValues[f.tagName]?.trim())
+      .filter((f) => !fieldValues[f.tagName]?.trim())
       .map((f) => f.label);
     if (missing.length > 0) {
-      setError(`Required fields are missing: ${missing.join(", ")}`);
+      setError(`Missing required fields: ${missing.join(", ")}`);
       return false;
     }
     return true;
