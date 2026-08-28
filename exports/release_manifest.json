@@ -29,4 +29,3 @@
     "trigger": "push to main / tag v* / manual dispatch"
   }
 }
-}

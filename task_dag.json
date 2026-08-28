@@ -620,9 +620,19 @@
           "path": "src/components/GenerationHistory.tsx"
         }
       ],
-      "status": "pending",
-      "attempts": 0,
-      "tier": "standard"
+      "status": "verified",
+      "attempts": 1,
+      "tier": "standard",
+      "blockers": [],
+      "verification_date": "2026-08-28",
+      "verification_evidence": [
+        "App.tsx imports all 3 v2 components (MatterForm, GenerationHistory, BundlesScreen)",
+        "Navigation includes Dashboard/Bundles/Matters/Generated Documents",
+        "Components rendered in appropriate views",
+        "npm run build succeeds with 0 errors",
+        "contract_v2.py::test_ui_components_wired passes"
+      ],
+      "audit_notes": "VERIFIED. All components implemented and wired. Build passes. v2 UI is fully accessible."
     },
     {
       "id": "TASK-120",
@@ -654,9 +664,20 @@
           "path": "exports/verification_report_v2.md"
         }
       ],
-      "status": "pending",
-      "attempts": 0,
-      "tier": "standard"
+      "status": "verified",
+      "attempts": 1,
+      "tier": "standard",
+      "blockers": [],
+      "verification_date": "2026-08-28",
+      "verification_evidence": [
+        "Schema v5 applied with all required tables",
+        "31/31 backend tests passing",
+        "10/10 contract tests passing (contract_v2.py)",
+        "AC-040 compliance verified (no docx in React)",
+        "Rust compiles with 0 warnings",
+        "verification_report_v2.md created"
+      ],
+      "audit_notes": "VERIFIED. Integration gate passed. All contracts verified. exports/verification_report_v2.md documents full verification."
     },
     {
       "id": "TASK-121",

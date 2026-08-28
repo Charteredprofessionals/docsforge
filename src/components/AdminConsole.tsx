@@ -4,7 +4,7 @@ import { save, open } from "@tauri-apps/plugin-dialog";
 import { backupDatabase, restoreDatabase } from "../lib/ipc";
 import BugBook from "./BugBook";
 
-export default function AdminConsole() {
+export default function AdminConsole({ currentUser }: { currentUser?: import("../lib/ipc").CurrentUser | null }) {
   const [tab, setTab] = useState<"users" | "licenses" | "audit" | "policy" | "data" | "bugs">("users");
   const [message, setMessage] = useState<string | null>(null);
 
@@ -112,7 +112,10 @@ export default function AdminConsole() {
             <h3 className="text-lg font-semibold mb-2">Organization Seats</h3>
             <p className="text-slate-400 text-sm mb-4">Assign user roles: Viewer, Filler, Creator, Approver, Admin.</p>
             <div className="bg-slate-950 p-4 rounded-lg text-slate-400 text-sm">
-              Local Admin (Owner) — <span className="text-green-400 font-mono">admin</span>
+              Current session — <span className="text-green-400 font-mono">{currentUser?.role ?? "admin"}</span>
+              {currentUser?.name ? (
+                <span className="text-slate-500"> ({currentUser.name})</span>
+              ) : null}
             </div>
           </div>
         )}

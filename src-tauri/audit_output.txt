@@ -1,0 +1,12 @@
+﻿cargo : error: no such command: `audit`
+At line:1 char:71
++ ... d:\sdlc_studio\projects\docsforge\src-tauri; cargo audit 2>&1 | Out-F ...
++                                                  ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: no such command: `audit`:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+help: a command with a similar name exists: `add`
+
+help: view all installed commands with `cargo --list`
+help: find a package to install `audit` with `cargo search cargo-audit`

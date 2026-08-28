@@ -50,7 +50,7 @@ function downloadBlob(content: BlobPart, filename: string, mime: string) {
   URL.revokeObjectURL(url);
 }
 
-function base64ToBytes(b64: string): Uint8Array<ArrayBuffer> {
+function base64ToBytes(b64: string) {
   const clean = b64.includes(",") ? b64.split(",")[1] : b64;
   const bin = atob(clean);
   const bytes = new Uint8Array(bin.length);
@@ -84,7 +84,7 @@ export default function BugBook() {
       });
       setBugs(list);
     } catch (e) {
-      setError(`Failed to load bug book: ${e}`);
+      setError(`Failed to load bug book: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setLoading(false);
     }
@@ -110,7 +110,7 @@ export default function BugBook() {
       await updateBugStatus(selected.id, status, "admin");
       await refreshSelected(selected.id);
     } catch (e) {
-      setError(`Status update failed: ${e}`);
+      setError(`Status update failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
 
@@ -130,7 +130,7 @@ export default function BugBook() {
       });
       await refreshSelected(bugId);
     } catch (e) {
-      setError(`Attachment failed: ${e}`);
+      setError(`Attachment failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
 
@@ -147,7 +147,7 @@ export default function BugBook() {
       });
       downloadBlob(csv, `bug-book-${new Date().toISOString().slice(0, 10)}.csv`, "text/csv");
     } catch (e) {
-      setError(`CSV export failed: ${e}`);
+      setError(`CSV export failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
 
@@ -164,7 +164,7 @@ export default function BugBook() {
       });
       downloadBlob(base64ToBytes(pdfBase64), filename, "application/pdf");
     } catch (e) {
-      setError(`PDF export failed: ${e}`);
+      setError(`PDF export failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
 
@@ -506,7 +506,7 @@ function ManualBugModal({
       });
       onCreated();
     } catch (e) {
-      setErr(`Failed to create bug: ${e}`);
+      setErr(`Failed to create bug: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setBusy(false);
     }

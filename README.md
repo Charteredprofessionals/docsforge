@@ -2,12 +2,27 @@
 
 **Deterministic, offline-first document automation for Windows.**
 
+**Version:** 2.0.0 (Windows-only)  
+**Platform Support:** Windows 10/11 | Mac/Linux coming in v2.0.1
+
 DocForge turns a Word (`.docx`) document into a reusable **template** with fillable fields,
 then generates completed documents on demand — as Word (`.docx`) or PDF — entirely on your
 machine. No cloud. No accounts. No AI.
 
 > DocForge is built for organizations that need reproducible, auditable document generation
 > without sending sensitive data to third-party services.
+
+---
+
+## ⚠️ Platform Support
+
+**Current Release (v2.0.0):**
+- ✅ **Windows 10/11:** Full support with DPAPI encryption
+- ❌ **Mac/Linux:** Cross-platform support coming in v2.0.1
+
+**Why Windows-only in v2.0.0?**  
+This release uses Windows DPAPI for secure at-rest encryption of licenses and settings.  
+v2.0.1 will add cross-platform encryption using the `age` cryptography library.
 
 ---
 

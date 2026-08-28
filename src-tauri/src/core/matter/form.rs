@@ -6,18 +6,19 @@
 //! shape the v2 UI consumes to render an input form (REQ-032).
 
 use rusqlite::Connection;
+use serde::Serialize;
 use serde_json::Value;
 
 use crate::core::error::DocForgeError;
 use crate::core::field_mapping::groups::FieldGroupDetail;
 use crate::core::field_mapping::registry::list_fields;
-use crate::core::field_mapping::schema::{validate_value, FieldDef, FieldType};
+use crate::core::field_mapping::schema::{validate_value, FieldDef, FieldType, GroupScope};
 use crate::core::field_mapping::groups::list_field_groups;
 use crate::core::matter::matter::{get_matter, Matter};
 use crate::core::matter::matter_values::{list_matter_values, set_matter_value};
 
 /// A field rendered in a form, with its current value and validation status.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct FormField {
     pub field: FieldDef,
     pub value: Option<Value>,
@@ -25,14 +26,14 @@ pub struct FormField {
 }
 
 /// A group of fields rendered together in the form.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct FormGroup {
     pub group: FieldGroupDetail,
     pub fields: Vec<FormField>,
 }
 
 /// Full grouped form view of a Matter.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct MatterForm {
     pub matter: Matter,
     pub groups: Vec<FormGroup>,

@@ -57,7 +57,7 @@ export default function Bundles({ onUseTemplate }: Props) {
       setBundles(bs);
       setTemplates(ts);
     } catch (e) {
-      setError(String(e));
+      setError("Failed to load bundles: " + (e instanceof Error ? e.message : String(e)));
     }
   };
 
@@ -91,7 +91,7 @@ export default function Bundles({ onUseTemplate }: Props) {
       setSelected(new Set());
       await refresh();
     } catch (e) {
-      setError(String(e));
+      setError("Failed to create bundle: " + (e instanceof Error ? e.message : String(e)));
     }
   };
 
@@ -104,7 +104,7 @@ export default function Bundles({ onUseTemplate }: Props) {
       }
       await refresh();
     } catch (e) {
-      setError(String(e));
+      setError("Failed to delete bundle: " + (e instanceof Error ? e.message : String(e)));
     }
   };
 
@@ -118,7 +118,7 @@ export default function Bundles({ onUseTemplate }: Props) {
       const members = templates.filter((t) => ids.includes(t.id));
       setMemberTemplates(members);
     } catch (e) {
-      setError(String(e));
+      setError("Failed to load bundle: " + (e instanceof Error ? e.message : String(e)));
     }
   };
 
@@ -138,7 +138,7 @@ export default function Bundles({ onUseTemplate }: Props) {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      setError(`Failed to export fields CSV for ${t.name}: ${e}`);
+      setError(`Failed to export fields CSV for ${t.name}: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
 
@@ -179,7 +179,7 @@ export default function Bundles({ onUseTemplate }: Props) {
         newResults[t.id] = res;
       } catch (e) {
         newResults[t.id] = null;
-        setError(`Failed generating ${t.name}: ${e}`);
+        setError(`Failed generating ${t.name}: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
     setResults(newResults);

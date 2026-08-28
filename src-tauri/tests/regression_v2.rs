@@ -85,7 +85,7 @@ fn test_v1_template_fill_substitutes_placeholders() {
     values.insert("Company".to_string(), "Acme Pvt Ltd".to_string());
     values.insert("Ref".to_string(), "REF-2026-001".to_string());
 
-    let filled = fill_document(&bytes, &values).expect("fill document");
+    let filled = fill_document(&bytes, &values, true).expect("fill document");
     let xml = extract_document_xml(&filled);
     assert!(xml.contains("Acme Pvt Ltd"), "company substituted: {xml}");
     assert!(xml.contains("REF-2026-001"), "ref substituted: {xml}");

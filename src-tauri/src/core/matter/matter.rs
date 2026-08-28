@@ -53,6 +53,14 @@ impl MatterStatus {
     }
 }
 
+impl std::str::FromStr for MatterStatus {
+    type Err = DocForgeError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        MatterStatus::from_str(s)
+    }
+}
+
 /// One row in the `matters` table.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Matter {

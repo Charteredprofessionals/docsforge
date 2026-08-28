@@ -8,6 +8,7 @@
 //! (AC-027), plus the `GroupSummary` used by the later Bundle Health Check.
 
 use rusqlite::{params, Connection, Error as RusqliteError};
+use serde::Serialize;
 
 use crate::core::error::DocForgeError;
 use crate::core::field_mapping::registry;
@@ -18,7 +19,7 @@ use crate::core::field_mapping::schema::{FieldDef, FieldGroup, GroupScope};
 /// Consumed by the Bundle Health Check (later wave): `shared_count` and
 /// `document_specific_count` summarize the group scope split, while
 /// `total_fields` reports how many canonical fields the version carries.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct GroupSummary {
     /// Number of `Shared` groups owned by the bundle version.
     pub shared_count: i64,
@@ -31,7 +32,7 @@ pub struct GroupSummary {
 /// A field group together with its member fields (REQ-027).
 ///
 /// Returned by detail queries that need the full group + field roster.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct FieldGroupDetail {
     /// The owning field group.
     pub group: FieldGroup,

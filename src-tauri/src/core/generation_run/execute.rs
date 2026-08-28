@@ -14,6 +14,7 @@ use std::fs;
 use std::path::Path;
 
 use rusqlite::Connection;
+use serde::Serialize;
 use serde_json::Value;
 #[cfg(test)]
 use serde_json::json;
@@ -32,7 +33,7 @@ use crate::core::rules::evaluate::evaluate_rules;
 use crate::core::template_store::load_template_file;
 
 /// One produced artifact for a single (document, format) pair.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct GeneratedDocument {
     pub bundle_document_id: String,
     pub document_name: String,
@@ -42,7 +43,7 @@ pub struct GeneratedDocument {
 }
 
 /// Result of a full generation run.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct ExecuteResult {
     pub run_id: String,
     pub included_document_ids: Vec<String>,
@@ -329,7 +330,7 @@ mod tests {
     use crate::core::matter::matter_values::set_matter_value;
     use crate::core::template_store::save_template;
     use crate::schema::init_memory_db;
-    use std::io::Cursor;
+    use std::io::{Cursor, Write};
     use zip::write::FileOptions;
     use zip::ZipWriter;
 

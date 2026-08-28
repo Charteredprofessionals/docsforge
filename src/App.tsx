@@ -5,18 +5,31 @@ import TemplateCreator from "./components/TemplateCreator";
 import TemplateFiller from "./components/TemplateFiller";
 import AdminConsole from "./components/AdminConsole";
 import Bundles from "./components/Bundles";
+import BundlesScreen from "./components/BundlesScreen";
+import MatterForm from "./components/MatterForm";
+import GenerationHistory from "./components/GenerationHistory";
 import ConsentDialog from "./components/ConsentDialog";
 import { installErrorCapture } from "./lib/errorCapture";
-import { setTelemetryConsent } from "./lib/ipc";
-import { FileText, Plus, List, Shield, Settings, Layers } from "lucide-react";
+import { setTelemetryConsent, getCurrentUser, CurrentUser } from "./lib/ipc";
+import { FileText, Plus, List, Shield, Settings, Layers, LayoutDashboard, FileStack, FolderKanban } from "lucide-react";
 
 export default function App() {
-  const [view, setView] = useState<AppView>("list");
+  const [view, setView] = useState<AppView>("dashboard");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [selectedBundleId, setSelectedBundleId] = useState<string | null>(null);
+  const [selectedMatterId, setSelectedMatterId] = useState<string | null>(null);
   const [showConsentModal, setShowConsentModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
   useEffect(() => {
     installErrorCapture();
+    // Establish the current user / RBAC context once on startup so the UI can
+    // reflect role-aware state and the backend governance checks have a session.
+    getCurrentUser()
+      .then(setCurrentUser)
+      .catch(() => {
+        /* best-effort; backend falls back to the local admin user */
+      });
   }, []);
 
   const handleCreateTemplate = () => {
@@ -30,7 +43,25 @@ export default function App() {
 
   const handleBackToList = () => {
     setSelectedTemplateId(null);
-    setView("list");
+    setSelectedBundleId(null);
+    setSelectedMatterId(null);
+    setView("dashboard");
+  };
+
+  const handleViewBundle = (bundleId: string) => {
+    setSelectedBundleId(bundleId);
+    setView("bundle-detail");
+  };
+
+  const handleViewMatter = (matterId: string) => {
+    setSelectedMatterId(matterId);
+    setView("matter-form");
+  };
+
+  const handleMatterComplete = () => {
+    if (selectedMatterId) {
+      setView("generation-history");
+    }
   };
 
   return (
@@ -49,31 +80,20 @@ export default function App() {
           </div>
           <nav className="flex items-center gap-1.5 bg-slate-900/60 p-1 rounded-xl border border-slate-700/50">
             <button
-              onClick={handleBackToList}
+              onClick={() => setView("dashboard")}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
-                view === "list"
+                view === "dashboard"
                   ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
                   : "text-slate-300 hover:text-white hover:bg-slate-800"
               }`}
             >
-              <List className="w-4 h-4" />
-              Templates
-            </button>
-            <button
-              onClick={handleCreateTemplate}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
-                view === "create"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
-                  : "text-slate-300 hover:text-white hover:bg-slate-800"
-              }`}
-            >
-              <Plus className="w-4 h-4" />
-              New Template
+              <LayoutDashboard className="w-4 h-4" />
+              Dashboard
             </button>
             <button
               onClick={() => setView("bundles")}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
-                view === "bundles"
+                view === "bundles" || view === "bundle-detail"
                   ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
                   : "text-slate-300 hover:text-white hover:bg-slate-800"
               }`}
@@ -81,6 +101,29 @@ export default function App() {
               <Layers className="w-4 h-4" />
               Bundles
             </button>
+            <button
+              onClick={() => setView("matters")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                view === "matters" || view === "matter-form"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800"
+              }`}
+            >
+              <FolderKanban className="w-4 h-4" />
+              Matters
+            </button>
+            <button
+              onClick={() => setView("generation-history")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                view === "generation-history"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800"
+              }`}
+            >
+              <FileStack className="w-4 h-4" />
+              Generated Docs
+            </button>
+            <div className="h-4 w-px bg-slate-700 mx-1" />
             <button
               onClick={() => setView("admin")}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
@@ -106,6 +149,9 @@ export default function App() {
 
       {/* Main content */}
       <main className="flex-1 overflow-hidden">
+        {view === "dashboard" && (
+          <TemplateList onUseTemplate={handleUseTemplate} onCreateTemplate={handleCreateTemplate} />
+        )}
         {view === "list" && (
           <TemplateList onUseTemplate={handleUseTemplate} onCreateTemplate={handleCreateTemplate} />
         )}
@@ -113,8 +159,25 @@ export default function App() {
         {view === "fill" && selectedTemplateId && (
           <TemplateFiller templateId={selectedTemplateId} onBack={handleBackToList} />
         )}
-        {view === "admin" && <AdminConsole />}
-        {view === "bundles" && <Bundles onUseTemplate={handleUseTemplate} />}
+        {view === "admin" && <AdminConsole currentUser={currentUser} />}
+        {view === "bundles" && <BundlesScreen onViewMatter={handleViewMatter} />}
+        {view === "bundle-detail" && selectedBundleId && (
+          <BundlesScreen onViewMatter={handleViewMatter} />
+        )}
+        {view === "matters" && <BundlesScreen onViewMatter={handleViewMatter} />}
+        {view === "matter-form" && selectedMatterId && (
+          <MatterForm 
+            matterId={selectedMatterId}
+            onComplete={handleMatterComplete}
+            onCancel={() => setView("matters")}
+          />
+        )}
+        {view === "generation-history" && selectedMatterId && (
+          <GenerationHistory 
+            matterId={selectedMatterId}
+            onBack={() => setView("matters")}
+          />
+        )}
       </main>
 
       {/* Privacy Consent Modal */}

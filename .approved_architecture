@@ -1,0 +1,60 @@
+{
+  "approved": true,
+  "approved_at": "2026-08-26T14:00:00+05:30",
+  "approved_by": "Kilo (AI-assisted code review)",
+  "approval_phase": "Architecture & Design",
+  "architecture_version": "2.0.0",
+  "documents": [
+    "architecture.md",
+    "schema.md",
+    "task_dag.json",
+    "docs/design_decisions.md"
+  ],
+  "key_decisions": [
+    "Layered architecture (L3 Shell → L2 Services → L1 Core → L0 Infra)",
+    "Data Model v3: Bundle + Matter domain (REQ-023, REQ-024, REQ-025)",
+    "Canonical field schema with 13 field types (REQ-026)",
+    "Field groups: Shared vs DocumentSpecific (REQ-027)",
+    "Explicit deterministic placeholder-to-field mappings (REQ-028)",
+    "Rules DSL for conditional documents (REQ-037)",
+    "Append-only generation runs with input snapshots (REQ-033, REQ-034)",
+    "Native PDF export via docx-rs + printpdf (zero external dependencies)",
+    "DOMPurify HTML sanitization in WebView2 preview",
+    "Offline-first licensing with air-gapped activation files",
+    "SQLite WAL mode with foreign keys and append-only triggers"
+  ],
+  "modules_approved": [
+    "core/docx_engine.rs — OPC validation, cross-run tag replacement, document filling",
+    "core/template_store.rs — Template persistence (filesystem-backed, SHA-256 hashed)",
+    "core/bundle/ — Bundle identity, versioning, .dfpkg packaging, output config",
+    "core/field_mapping/ — Canonical field schema, groups, mappings, extraction",
+    "core/matter/ — Matter CRUD, values, form rendering, 3-level validation",
+    "core/rules/ — Closed DSL parser + evaluator for conditional documents",
+    "core/generation_run/ — Append-only run records, execution orchestration",
+    "core/governance.rs — RBAC, audit logging, generation records",
+    "core/licensing.rs — Tier evaluation, offline activation, device caps",
+    "core/export/ — DOCX identity, PDF native, HTML sanitized preview, .dfpkg",
+    "core/bug_book.rs — Crash capture, manual entries, CSV/PDF export",
+    "core/crypto.rs — DPAPI at-rest encryption on Windows",
+    "infra/print_bridge.rs — WebView2 + native PDF fallback",
+    "commands.rs — Tauri command surface with RBAC guards",
+    "tools/docforge_cli.rs — Functional CLI with all documented subcommands"
+  ],
+  "constraints": [
+    "No external network access without explicit user action",
+    "Zero external dependencies for core document processing",
+    "All errors must be structured DocForgeError with stable JSON contract",
+    "Published bundle versions are immutable (append-only triggers)",
+    "Generation runs are append-only (no UPDATE/DELETE)",
+    "All IPC payloads >1MB must use raw bytes (no Base64 in hot path)"
+  ],
+  "evidence": {
+    "pytest_tests": 31,
+    "pytest_status": "passing",
+    "fidelity_fixtures": 29,
+    "tauri_commands": 54,
+    "schema_version": 5,
+    "migrations": 5
+  },
+  "notes": "Architecture approved for implementation. All v1 and v2 core modules are implemented and tested. CLI and Tauri GUI commands are wired. Ready for Phase 4: Build & Release."
+}

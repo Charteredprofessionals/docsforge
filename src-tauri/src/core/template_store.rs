@@ -85,10 +85,14 @@ pub fn save_template(
     atomic_write(&file_path, &protected)?;
 
     let storage_path = file_path.to_string_lossy().to_string();
-
     let status_str = TemplateStatus::Draft.to_string();
 
-    conn.execute(
+    // Wrap DB inserts in a transaction so the filesystem file and DB records are consistent.
+    let tx = conn
+        .unchecked_transaction()
+        .map_err(|e| DocForgeError::StorageIo(format!("Begin save_template transaction: {e}")))?;
+
+    tx.execute(
         "INSERT INTO templates (
             id, org_id, name, category, description, current_version, status,
             storage_path, fields_json, content_sha256, created_by
@@ -110,7 +114,7 @@ pub fn save_template(
     .map_err(|e| DocForgeError::StorageIo(format!("DB insert templates: {e}")))?;
 
     let version_id = format!("ver_{}", Uuid::new_v4());
-    conn.execute(
+    tx.execute(
         "INSERT INTO template_versions (
             id, template_id, version, status, storage_path, fields_json, content_sha256, note, created_by
         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
@@ -127,6 +131,9 @@ pub fn save_template(
         ],
     )
     .map_err(|e| DocForgeError::StorageIo(format!("DB insert template_versions: {e}")))?;
+
+    tx.commit()
+        .map_err(|e| DocForgeError::StorageIo(format!("Commit save_template transaction: {e}")))?;
 
     load_template_meta(conn, &template_id)
 }
@@ -269,13 +276,142 @@ pub fn delete_template(conn: &Connection, template_id: &str) -> Result<(), DocFo
 
     let base_dir = get_templates_dir().join(template_id);
     if base_dir.exists() {
-        let _ = fs::remove_dir_all(&base_dir);
+        fs::remove_dir_all(&base_dir).map_err(|e| {
+            DocForgeError::StorageIo(format!("Failed to remove template directory '{}': {e}", base_dir.display()))
+        })?;
     }
 
-    conn.execute("DELETE FROM templates WHERE id = ?1", params![template_id])
+    let affected = conn.execute("DELETE FROM templates WHERE id = ?1", params![template_id])
         .map_err(|e| DocForgeError::StorageIo(format!("DB delete: {e}")))?;
 
+    if affected == 0 {
+        return Err(DocForgeError::StorageMissing(format!(
+            "Template '{template_id}' not found in database"
+        )));
+    }
+
     Ok(())
+}
+
+/// Updates an existing template's metadata and/or DOCX content.
+///
+/// Only non-empty fields are updated; `None` means "keep existing".
+pub fn update_template(
+    conn: &Connection,
+    template_id: &str,
+    name: Option<&str>,
+    category: Option<&str>,
+    description: Option<&str>,
+    fields: Option<&[TemplateFieldSpec]>,
+    docx_bytes: Option<&[u8]>,
+) -> Result<TemplateRecord, DocForgeError> {
+    let mut record = load_template_meta(conn, template_id)?;
+
+    // Update metadata if provided.
+    if let Some(n) = name {
+        if !n.trim().is_empty() {
+            record.name = n.to_string();
+        }
+    }
+    if let Some(c) = category {
+        if !c.trim().is_empty() {
+            record.category = c.to_string();
+        }
+    }
+    if let Some(d) = description {
+        record.description = d.to_string();
+    }
+
+    // Update fields if provided.
+    if let Some(new_fields) = fields {
+        record.fields = new_fields.to_vec();
+    }
+
+    // Update DOCX content if provided.
+    if let Some(bytes) = docx_bytes {
+        let new_sha256 = compute_sha256(bytes);
+        let new_version = record.current_version + 1;
+
+        // Create new version directory.
+        let base_dir = get_templates_dir();
+        let new_version_dir = base_dir.join(template_id).join(format!("v{new_version}"));
+        fs::create_dir_all(&new_version_dir).map_err(|e| {
+            DocForgeError::StorageIo(format!("Failed to create version directory: {e}"))
+        })?;
+
+        let new_file_path = new_version_dir.join("template.docx");
+        let protected = encrypt_at_rest(bytes)
+            .map_err(|e| DocForgeError::StorageIo(format!("Encrypt template: {e}")))?;
+        atomic_write(&new_file_path, &protected)?;
+
+        let new_storage_path = new_file_path.to_string_lossy().to_string();
+        let fields_json = serde_json::to_string(&record.fields)
+            .map_err(|e| DocForgeError::Internal(format!("Serialize fields: {e}")))?;
+
+        // Update template row to point to new version.
+        conn.execute(
+            "UPDATE templates SET
+                name = ?1, category = ?2, description = ?3, current_version = ?4,
+                storage_path = ?5, fields_json = ?6, content_sha256 = ?7, updated_at = datetime('now')
+             WHERE id = ?8",
+            params![
+                &record.name,
+                &record.category,
+                &record.description,
+                new_version,
+                new_storage_path,
+                fields_json,
+                new_sha256,
+                template_id,
+            ],
+        )
+        .map_err(|e| DocForgeError::StorageIo(format!("DB update templates: {e}")))?;
+
+        // Insert new version row.
+        let version_id = format!("ver_{}", Uuid::new_v4());
+        conn.execute(
+            "INSERT INTO template_versions (
+                id, template_id, version, status, storage_path, fields_json, content_sha256, note, created_by
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            params![
+                version_id,
+                template_id,
+                new_version,
+                TemplateStatus::Draft.to_string(),
+                new_storage_path,
+                fields_json,
+                new_sha256,
+                "Updated via edit",
+                record.created_by,
+            ],
+        )
+        .map_err(|e| DocForgeError::StorageIo(format!("DB insert template_versions: {e}")))?;
+
+        record.current_version = new_version;
+        record.storage_path = new_storage_path;
+        record.content_sha256 = new_sha256;
+        record.updated_at = chrono::Utc::now().to_rfc3339();
+    } else {
+        // Only metadata changed; update the row directly.
+        let fields_json = serde_json::to_string(&record.fields)
+            .map_err(|e| DocForgeError::Internal(format!("Serialize fields: {e}")))?;
+        conn.execute(
+            "UPDATE templates SET
+                name = ?1, category = ?2, description = ?3, fields_json = ?4, updated_at = datetime('now')
+             WHERE id = ?5",
+            params![
+                &record.name,
+                &record.category,
+                &record.description,
+                fields_json,
+                template_id,
+            ],
+        )
+        .map_err(|e| DocForgeError::StorageIo(format!("DB update templates: {e}")))?;
+        record.updated_at = chrono::Utc::now().to_rfc3339();
+    }
+
+    Ok(record)
 }
 
 /// Writes `data` to `path` atomically: a temp file is written then renamed into place,

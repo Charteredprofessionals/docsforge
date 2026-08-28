@@ -1,4 +1,6 @@
 import React, { useMemo, forwardRef } from "react";
+import DOMPurify from "dompurify";
+import type { Config } from "dompurify";
 
 interface Props {
   html: string;
@@ -6,16 +8,25 @@ interface Props {
   onTextSelection?: () => void;
 }
 
+const sanitizerConfig: Config = {
+  ALLOWED_TAGS: [
+    "b", "i", "em", "strong", "a", "p", "br", "ul", "ol", "li",
+    "span", "div", "table", "thead", "tbody", "tr", "td", "th",
+    "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre",
+    "hr", "img",
+  ],
+  ALLOWED_ATTR: ["href", "src", "alt", "title", "width", "height", "class"],
+  FORBID_ATTR: ["onload", "onerror", "onclick", "onmouseover", "onfocus", "onblur"],
+  FORBID_TAGS: ["script", "iframe", "object", "embed", "form", "input"],
+  FORBID_CONTENTS: ["script", "style"],
+};
+
 const SanitizedPreview = forwardRef<HTMLDivElement, Props>(function SanitizedPreview(
   { html, className = "", onTextSelection },
   ref
 ) {
-  // Enforce iframe sandboxing or sanitized container
   const sanitizedHtml = useMemo(() => {
-    return html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-      .replace(/\s+on\w+="[^"]*"/gi, "")
-      .replace(/javascript:/gi, "disabled:");
+    return DOMPurify.sanitize(html, sanitizerConfig);
   }, [html]);
 
   return (

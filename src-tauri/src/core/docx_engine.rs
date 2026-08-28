@@ -141,14 +141,16 @@ pub fn tag_document(
             .map_err(|e| DocForgeError::InvalidDocx(format!("Read word/document.xml: {e}")))?;
     }
 
-    let modified_xml = process_xml_text(&document_xml, |text| {
-        let mut result = text.to_string();
+    let modified_xml = process_xml_text(&document_xml, |para_text| {
+        let mut result = para_text.to_string();
         for field in fields {
-            if !field.original_text.is_empty() && result.contains(&field.original_text) {
-                result = result.replace(
-                    &field.original_text,
-                    &format!("{{{{{}}}}}", field.tag_name),
-                );
+            if !field.original_text.is_empty() {
+                // Replace only the FIRST occurrence in this paragraph to match the user's specific selection.
+                // The frontend selects a specific text range; we tag only that occurrence.
+                if let Some(idx) = result.find(&field.original_text) {
+                    let placeholder = format!("{{{{{}}}}}", field.tag_name);
+                    result.replace_range(idx..idx + field.original_text.len(), &placeholder);
+                }
             }
         }
         result
@@ -200,15 +202,44 @@ pub fn fill_document(
         result
     })?;
 
-    // Unclosed / malformed tag check
-    if let Some(pos) = modified_xml.find("{{") {
-        let snippet = &modified_xml[pos..pos.min(pos + 30)];
-        if !snippet.contains("}}") {
+    // Unclosed / malformed tag check — scan full document for balanced {{ }} pairs.
+    // A proper state machine ensures we detect any unclosed {{ regardless of distance to }}.
+    let mut brace_depth = 0i32;
+    let mut first_unclosed_pos: Option<usize> = None;
+    let chars: Vec<char> = modified_xml.chars().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        if i + 1 < chars.len() && chars[i] == '{' && chars[i + 1] == '{' {
+            if brace_depth == 0 && first_unclosed_pos.is_none() {
+                first_unclosed_pos = Some(i);
+            }
+            brace_depth += 1;
+            i += 2;
+        } else if i + 1 < chars.len() && chars[i] == '}' && chars[i + 1] == '}' {
+            if brace_depth > 0 {
+                brace_depth -= 1;
+                if brace_depth == 0 {
+                    first_unclosed_pos = None;
+                }
+            }
+            i += 2;
+        } else {
+            i += 1;
+        }
+    }
+    if brace_depth > 0 {
+        if let Some(pos) = first_unclosed_pos {
+            let snippet_end = (pos + 30).min(modified_xml.len());
+            let snippet = &modified_xml[pos..snippet_end];
             return Err(DocForgeError::UnclosedTag {
                 tag: snippet.to_string(),
                 position: Some(pos),
             });
         }
+        return Err(DocForgeError::UnclosedTag {
+            tag: "{{...}} (unclosed)".to_string(),
+            position: first_unclosed_pos,
+        });
     }
 
     repackage_docx(&mut archive, &modified_xml)

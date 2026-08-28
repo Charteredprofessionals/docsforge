@@ -39,7 +39,13 @@ pub fn get_or_create_machine_id() -> Result<String, DocForgeError> {
 }
 
 /// Encrypts bytes at rest using platform data protection (DPAPI wrapper on Windows).
-/// Zero-knowledge construct: data is encrypted locally without network transmission.
+///
+/// **SECURITY WARNING:**
+/// - Windows: Uses DPAPI (cryptographically secure)
+/// - Other platforms: **FAILS SAFELY** - returns error to prevent insecure storage
+///
+/// Cross-platform encryption support will be added in v2.0.1 using proper cryptography.
+/// The previous XOR obfuscation has been removed as it provided false security.
 pub fn encrypt_at_rest(plaintext: &[u8]) -> Result<Vec<u8>, DocForgeError> {
     if plaintext.is_empty() {
         return Ok(Vec::new());
@@ -52,14 +58,21 @@ pub fn encrypt_at_rest(plaintext: &[u8]) -> Result<Vec<u8>, DocForgeError> {
 
     #[cfg(not(target_os = "windows"))]
     {
-        // Simple obfuscation envelope for non-windows fallback
-        let mut out = vec![0x44, 0x46, 0x45, 0x31]; // "DFE1" header
-        out.extend(plaintext.iter().map(|b| b ^ 0x5A));
-        Ok(out)
+        // Fail safely: do not pretend to encrypt when we can't
+        Err(DocForgeError::StorageIo(
+            "Encryption at rest requires Windows DPAPI. \
+             This build does not support secure storage. \
+             Cross-platform encryption will be available in v2.0.1."
+                .to_string(),
+        ))
     }
 }
 
 /// Decrypts bytes previously encrypted with `encrypt_at_rest`.
+///
+/// **SECURITY WARNING:**
+/// - Windows: Uses DPAPI (cryptographically secure)
+/// - Other platforms: **FAILS SAFELY** - returns error to prevent insecure operations
 pub fn decrypt_at_rest(ciphertext: &[u8]) -> Result<Vec<u8>, DocForgeError> {
     if ciphertext.is_empty() {
         return Ok(Vec::new());
@@ -72,13 +85,13 @@ pub fn decrypt_at_rest(ciphertext: &[u8]) -> Result<Vec<u8>, DocForgeError> {
 
     #[cfg(not(target_os = "windows"))]
     {
-        if ciphertext.len() < 4 || &ciphertext[0..4] != b"DFE1" {
-            return Err(DocForgeError::StorageIo(
-                "Invalid encrypted header envelope".to_string(),
-            ));
-        }
-        let payload = &ciphertext[4..];
-        Ok(payload.iter().map(|b| b ^ 0x5A).collect())
+        // Fail safely: do not pretend to decrypt when we can't verify security
+        Err(DocForgeError::StorageIo(
+            "Decryption at rest requires Windows DPAPI. \
+             This build cannot read encrypted data. \
+             Cross-platform encryption will be available in v2.0.1."
+                .to_string(),
+        ))
     }
 }
 
@@ -183,10 +196,22 @@ mod tests {
     }
 
     #[test]
+    #[cfg(target_os = "windows")]
     fn test_at_rest_roundtrip() {
         let secret = b"DOCFORGE_CONFIDENTIAL_KEY_12345";
-        let encrypted = encrypt_at_rest(secret).expect("Encryption must succeed");
-        let decrypted = decrypt_at_rest(&encrypted).expect("Decryption must succeed");
+        let encrypted = encrypt_at_rest(secret).expect("Encryption must succeed on Windows");
+        let decrypted = decrypt_at_rest(&encrypted).expect("Decryption must succeed on Windows");
         assert_eq!(&decrypted[..], secret);
+    }
+
+    #[test]
+    #[cfg(not(target_os = "windows"))]
+    fn test_at_rest_fails_safely_on_non_windows() {
+        let secret = b"DOCFORGE_CONFIDENTIAL_KEY_12345";
+        let result = encrypt_at_rest(secret);
+        assert!(result.is_err(), "Encryption should fail safely on non-Windows");
+        
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("Windows DPAPI"), "Error should mention Windows requirement");
     }
 }

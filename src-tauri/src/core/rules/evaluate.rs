@@ -13,11 +13,12 @@ use crate::core::error::DocForgeError;
 use crate::core::rules::parser::{parse, Expr};
 use crate::core::rules::validate_rule_expression;
 use rusqlite::Connection;
+use serde::Serialize;
 use serde_json::Value;
 use uuid::Uuid;
 
 /// A stored conditional-document rule.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Rule {
     pub id: String,
     pub bundle_version_id: String,
@@ -31,7 +32,7 @@ pub struct Rule {
 }
 
 /// Per-document inclusion decision.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct DocumentDecision {
     pub document_id: String,
     pub document_name: String,
@@ -40,7 +41,7 @@ pub struct DocumentDecision {
 }
 
 /// Summary of a conditional-document evaluation.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct RulesPreview {
     pub total_documents: usize,
     pub included_count: usize,
@@ -48,7 +49,7 @@ pub struct RulesPreview {
 }
 
 /// A document excluded by the rules, with its human reason.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct SkippedDocument {
     pub document_id: String,
     pub document_name: String,

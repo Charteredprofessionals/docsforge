@@ -23,7 +23,7 @@ export default function TemplateList({ onUseTemplate, onCreateTemplate }: Props)
       const parsed = await listTemplates();
       setTemplates(parsed);
     } catch (e) {
-      setError(String(e));
+      setError("Failed to load templates: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,7 @@ export default function TemplateList({ onUseTemplate, onCreateTemplate }: Props)
       setTemplates((prev) => prev.filter((t) => t.id !== deletingTemplate.id));
       setDeletingTemplate(null);
     } catch (e) {
-      setError("Failed to delete template: " + e);
+      setError("Failed to delete template: " + (e instanceof Error ? e.message : String(e)));
     }
   };
 
@@ -52,7 +52,7 @@ export default function TemplateList({ onUseTemplate, onCreateTemplate }: Props)
       await loadTemplates();
       if (res.id && onUseTemplate) onUseTemplate(res.id);
     } catch (e) {
-      setError("Failed to load sample template: " + e);
+      setError("Failed to load sample template: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setSeeding(false);
     }

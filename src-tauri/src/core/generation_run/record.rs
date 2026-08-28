@@ -7,6 +7,7 @@
 
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 use uuid::Uuid;
 
 use crate::core::error::DocForgeError;
@@ -42,6 +43,14 @@ impl RunStatus {
             "partial" => Ok(RunStatus::Partial),
             _ => Err(DocForgeError::InvalidInput(format!("Unknown run status: '{s}'"))),
         }
+    }
+}
+
+impl FromStr for RunStatus {
+    type Err = DocForgeError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        RunStatus::from_str(s)
     }
 }
 

@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { TemplateFull } from "../lib/types";
 import {
@@ -7,7 +6,7 @@ import {
   base64ToArrayBuffer,
   downloadBase64File,
 } from "../lib/docxProcessor";
-import { exportTemplateFieldsCsv, batchFillFromCsv, BatchFillResult } from "../lib/ipc";
+import { exportTemplateFieldsCsv, batchFillFromCsv, BatchFillResult, getTemplate, fillTemplate, exportToPdf } from "../lib/ipc";
 import SanitizedPreview from "./SanitizedPreview";
 import {
   ArrowLeft,
@@ -87,15 +86,11 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
   // FIX #5: Single fill call — returns cached result if values haven't changed
   const getFilledDocx = useCallback(async (): Promise<string> => {
     if (cachedFilledB64) return cachedFilledB64;
-    const result = await invoke<string>("fill_template", {
-      request: {
-        templateId,
-        values: fieldValues,
-        replaceAll,
-      },
+    const b64 = await fillTemplate({
+      templateId,
+      values: fieldValues,
+      replaceAll,
     });
-    const parsed = JSON.parse(result);
-    const b64 = parsed.docx_base64 as string;
     setCachedFilledB64(b64);
     return b64;
   }, [cachedFilledB64, templateId, fieldValues, replaceAll]);
@@ -104,17 +99,15 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const result = await invoke<string>("get_template", { templateId });
-      const parsed: TemplateFull = JSON.parse(result);
+      const parsed: TemplateFull = await getTemplate(templateId);
       setTemplate(parsed);
-      // Initialize empty values keyed by each field's tag name.
       const values: Record<string, string> = {};
       parsed.fields.forEach((f) => {
         values[f.tagName] = "";
       });
       setFieldValues(values);
     } catch (e) {
-      setError("Failed to load template: " + e);
+      setError("Failed to load template: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setLoading(false);
     }
@@ -130,7 +123,7 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
       setPreviewHtml(html);
       setStep("preview");
     } catch (e) {
-      setError("Failed to generate preview: " + e);
+      setError("Failed to generate preview: " + (e instanceof Error ? e.message : String(e)));
     }
   };
 
@@ -143,7 +136,7 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
       downloadBase64File(filledB64, filename);
       showToast(`Exported ${filename} successfully!`);
     } catch (e) {
-      setError("Failed to export Word: " + e);
+      setError("Failed to export Word: " + (e instanceof Error ? e.message : String(e)));
     }
   };
 
@@ -154,20 +147,17 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
     setError(null);
     try {
       const filledB64 = await getFilledDocx();
-      const result = await invoke<string>("export_to_pdf", {
-        request: {
-          docx_base64: filledB64,
-          output_filename: `${template.name}_filled`,
-        },
-      });
-      const parsed = JSON.parse(result);
-      downloadBase64File(parsed.pdf_base64, parsed.filename);
-      showToast(`Exported ${parsed.filename} successfully!`);
+      const result = await exportToPdf(filledB64, `${template.name}_filled`);
+      downloadBase64File(result.pdfBase64, result.filename);
+      const engineNote = result.engine === "native" 
+        ? " (native engine - plain text layout)" 
+        : "";
+      showToast(`Exported ${result.filename} successfully${engineNote}!`);
     } catch (e) {
-      const msg = String(e);
-      if (msg.includes("LibreOffice not found")) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.includes("Native PDF engine failed")) {
         setError(
-          "PDF export requires LibreOffice. Word export still works — install LibreOffice or use the .docx output."
+          "PDF export failed. The native engine encountered an error. Install LibreOffice for fallback support."
         );
       } else {
         setError("Failed to export PDF: " + msg);
@@ -190,7 +180,7 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      setError(`Failed to export fields CSV: ${e}`);
+      setError(`Failed to export fields CSV: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
 
@@ -232,7 +222,7 @@ export default function TemplateFiller({ templateId, onBack }: Props) {
       });
       setBatchResult(res);
     } catch (e) {
-      setError(`Batch generation failed: ${e}`);
+      setError(`Batch generation failed: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setBatchGenerating(false);
     }

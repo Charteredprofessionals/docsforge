@@ -1,1 +1,1 @@
-{"com.docforge.app":{"identifier":"com.docforge.app","description":"DocForge capabilities","local":true,"windows":["main"],"permissions":["core:default","dialog:default","dialog:allow-open"]}}
+{"com.docforge.app":{"identifier":"com.docforge.app","description":"DocForge capabilities","local":true,"windows":["main"],"permissions":["core:default","dialog:default","dialog:allow-open","dialog:allow-save"]}}

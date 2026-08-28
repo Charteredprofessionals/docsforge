@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -11,6 +10,7 @@ import {
   base64ToArrayBuffer,
   labelToTagName,
 } from "../lib/docxProcessor";
+import { uploadDocx, saveTemplate } from "../lib/ipc";
 import { Upload, Save, X, Plus, AlertCircle, ArrowLeft, Tag } from "lucide-react";
 import FieldModal from "./FieldModal";
 import SanitizedPreview from "./SanitizedPreview";
@@ -42,12 +42,7 @@ export default function TemplateCreator({ onComplete }: Props) {
       if (!selected) return;
 
       const filePath = selected;
-
-      const result = await invoke<string>("upload_docx", {
-        filePath,
-      });
-
-      const parsed: UploadedDocx = JSON.parse(result);
+      const parsed: UploadedDocx = await uploadDocx(filePath);
       setUploadedDocx(parsed);
 
       if (!parsed.base64) {
@@ -61,7 +56,7 @@ export default function TemplateCreator({ onComplete }: Props) {
       setTemplateName(filename.replace(/[_-]/g, " "));
       setStep("edit");
     } catch (e) {
-      setError("Failed to load document: " + e);
+      setError("Failed to load document: " + (e instanceof Error ? e.message : String(e)));
     }
   };
 
@@ -133,20 +128,22 @@ export default function TemplateCreator({ onComplete }: Props) {
     setError(null);
 
     try {
-      const result = await invoke<string>("save_template", {
-        request: {
-          name: templateName.trim(),
-          original_docx_b64: uploadedDocx.base64,
-          fields: fields,
-        },
+      if (!uploadedDocx.base64) {
+        setError("Document content is missing. Please re-upload the file.");
+        setSaving(false);
+        return;
+      }
+      const result = await saveTemplate({
+        name: templateName.trim(),
+        originalDocxB64: uploadedDocx.base64,
+        fields: fields,
       });
 
-      const parsed = JSON.parse(result);
-      if (parsed.success) {
+      if (result.success) {
         onComplete();
       }
     } catch (e) {
-      setError("Failed to save template: " + e);
+      setError("Failed to save template: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setSaving(false);
     }
